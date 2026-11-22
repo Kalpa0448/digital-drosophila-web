@@ -188,14 +188,57 @@ border-bottom:1px solid #252a38;padding-bottom:2px}
 
 <div id="param">
   <div class="hd"><b>⚙︎ 个性化设置</b><span></span><button id="pClose">✕</button></div>
-  <div class="pg">生态</div>
-  <div class="prow"><span>低密度优先交配</span>
-    <input type="checkbox" id="q-lowfind" checked style="width:auto">
-    <b id="v-lowfind" style="width:52px">开</b>
-  </div>
-  <div class="prow"><span>果蝇阈值</span><input type="range" id="q-lowfly" min="2" max="30" step="1" value="12"><b id="v-lowfly">12</b></div>
-  <div class="prow"><span>蜘蛛阈值</span><input type="range" id="q-lowpred" min="1" max="10" step="1" value="3"><b id="v-lowpred">3</b></div>
 
+  <div class="pg">▍果蝇 · 能量与进食</div>
+  <div class="prow"><span>基础代谢</span><input type="range" id="q-met" min="0.5" max="6" step="0.1" value="2.2"><b id="v-met">2.2</b></div>
+  <div class="prow"><span>饥饿阈值</span><input type="range" id="q-hung" min="20" max="120" step="1" value="55"><b id="v-hung">55</b></div>
+  <div class="prow"><span>饱腹能量阈值</span><input type="range" id="q-sate" min="60" max="175" step="5" value="140"><b id="v-sate">140</b></div>
+  <div class="prow"><span>进食速率</span><input type="range" id="q-eat" min="5" max="40" step="1" value="18"><b id="v-eat">18</b></div>
+  <div class="prow"><span>食物能量</span><input type="range" id="q-fen" min="400" max="3000" step="100" value="1200"><b id="v-fen">1200</b></div>
+  <div class="prow"><span>同时取食只数</span><input type="range" id="q-feedmax" min="1" max="20" step="1" value="5"><b id="v-feedmax">5</b></div>
+  <div class="prow"><span>食物变质 /s</span><input type="range" id="q-fdecay" min="0" max="12" step="0.2" value="0.8"><b id="v-fdecay">0.8</b></div>
+  <div class="prow"><span>食物供给系数</span><input type="range" id="q-foodk" min="0.2" max="1.2" step="0.05" value="0.55"><b id="v-foodk">0.55</b></div>
+  <div class="prow"><span>极度饥饿冒险概率</span><input type="range" id="q-risk" min="0" max="1" step="0.05" value="0.4"><b id="v-risk">40%</b></div>
+
+  <div class="pg">▍果蝇 · 繁殖与寿命</div>
+  <div class="prow"><span>繁殖能量门槛</span><input type="range" id="q-breed" min="60" max="170" step="5" value="75"><b id="v-breed">75</b></div>
+  <div class="prow"><span>交配冷却</span><input type="range" id="q-mate" min="4" max="60" step="1" value="14"><b id="v-mate">14</b></div>
+  <div class="prow"><span>果蝇每窝卵</span><input type="range" id="q-fclutch" min="1" max="10" step="1" value="6"><b id="v-fclutch">6</b></div>
+  <div class="prow"><span>孵化时间</span><input type="range" id="q-egg" min="3" max="90" step="1" value="11"><b id="v-egg">11</b></div>
+  <div class="prow"><span>寿命</span><input type="range" id="q-life" min="60" max="800" step="10" value="230"><b id="v-life">220</b></div>
+  <div class="prow"><span>初始数量</span><input type="range" id="q-init" min="4" max="40" step="1" value="16"><b id="v-init">16</b></div>
+  <div class="prow"><span>果蝇软容量</span><input type="range" id="q-softcap" min="10" max="120" step="2" value="32"><b id="v-softcap">32</b></div>
+  <div class="prow"><span>保种阈值（低于就放开繁殖）</span><input type="range" id="q-lowkeep" min="10" max="80" step="2" value="40"><b id="v-lowkeep">40</b></div>
+  <div class="prow"><span>数量安全阀</span><input type="range" id="q-max" min="100" max="600" step="50" value="400"><b id="v-max">400</b></div>
+
+  <div class="pg">▍果蝇 · 学习与嗅觉</div>
+  <div class="prow"><span>学习率</span><input type="range" id="q-learn" min="0.05" max="1.2" step="0.05" value="0.35"><b id="v-learn">0.35</b></div>
+  <div class="prow"><span>遗忘率 /s</span><input type="range" id="q-forget" min="0" max="0.03" step="0.001" value="0.010"><b id="v-forget">0.010</b></div>
+  <div class="prow"><span>报警信息素</span><input type="range" id="q-phon" min="0" max="1" step="1" value="1"><b id="v-phon">开</b></div>
+  <div class="prow"><span>信息素残留 /s</span><input type="range" id="q-pht" min="0" max="60" step="1" value="20"><b id="v-pht">20</b></div>
+  <div class="prow"><span>回避半径</span><input type="range" id="q-phr" min="0.03" max="0.3" step="0.01" value="0.12"><b id="v-phr">0.12</b></div>
+  <div class="prow"><span>回避强度</span><input type="range" id="q-phk" min="0" max="2" step="0.05" value="1.15"><b id="v-phk">1.15</b></div>
+  <div class="prow"><span>取食阈值 MN_feed (Hz)</span><input type="range" id="q-thfeed" min="0" max="30" step="1" value="6"><b id="v-thfeed">6</b></div>
+  <div class="prow"><span>逃逸阈值 DN_escape (Hz)</span><input type="range" id="q-thesc" min="0" max="60" step="1" value="20"><b id="v-thesc">20</b></div>
+  <div class="prow"><span>产卵阈值 MN_oviposit (Hz)</span><input type="range" id="q-thovip" min="0" max="30" step="1" value="8"><b id="v-thovip">8</b></div>
+
+  <div class="pg">▍蜘蛛 · 捕食</div>
+  <div class="prow"><span>蜘蛛速度</span><input type="range" id="q-psp" min="0.005" max="0.06" step="0.002" value="0.030"><b id="v-psp">0.030</b></div>
+  <div class="prow"><span>捕食概率 /s</span><input type="range" id="q-pcatch" min="0.3" max="6" step="0.1" value="0.8"><b id="v-pcatch">0.8</b></div>
+  <div class="prow"><span>饱腹时长 /s</span><input type="range" id="q-satiety" min="0" max="120" step="5" value="45"><b id="v-satiety">45</b></div>
+
+  <div class="pg">▍蜘蛛 · 繁殖与寿命</div>
+  <div class="prow"><span>繁殖能量门槛</span><input type="range" id="q-pbreed" min="60" max="160" step="5" value="135"><b id="v-pbreed">135</b></div>
+  <div class="prow"><span>相遇半径</span><input type="range" id="q-mater" min="0.04" max="0.45" step="0.01" value="0.16"><b id="v-mater">0.16</b></div>
+  <div class="prow"><span>产卵冷却</span><input type="range" id="q-pmatecd" min="6" max="900" step="1" value="45"><b id="v-pmatecd">45</b></div>
+  <div class="prow"><span>每窝数量</span><input type="range" id="q-pclutch" min="1" max="6" step="1" value="3"><b id="v-pclutch">3</b></div>
+  <div class="prow"><span>蜘蛛卵孵化</span><input type="range" id="q-pegg" min="5" max="160" step="1" value="16"><b id="v-pegg">16</b></div>
+  <div class="prow"><span>蜘蛛寿命</span><input type="range" id="q-plife" min="60" max="2400" step="10" value="260"><b id="v-plife">260</b></div>
+  <div class="prow"><span>初始蜘蛛</span><input type="range" id="q-pinit" min="0" max="20" step="1" value="8"><b id="v-pinit">8</b></div>
+  <div class="prow"><span>蜘蛛软容量</span><input type="range" id="q-psoftcap" min="2" max="40" step="1" value="15"><b id="v-psoftcap">15</b></div>
+  <div class="prow"><span>蜘蛛安全阀</span><input type="range" id="q-pmax" min="10" max="80" step="2" value="60"><b id="v-pmax">60</b></div>
+
+  <div class="pg">▍天敌 · 青蛙与捕蝇草</div>
   <div class="prow"><span>青蛙</span>
     <input type="checkbox" id="q-frogon" checked style="width:auto">
     <b id="v-frogon" style="width:52px">开</b>
@@ -204,52 +247,21 @@ border-bottom:1px solid #252a38;padding-bottom:2px}
   <div class="prow"><span>弹舌距离</span><input type="range" id="q-frogreach" min="0.02" max="0.12" step="0.005" value="0.05"><b id="v-frogreach">0.050</b></div>
   <div class="prow"><span>狩猎性植物</span>
     <input type="checkbox" id="q-venuson" style="width:auto" checked>
-    <b id="v-venuson" style="width:52px">关</b>
+    <b id="v-venuson" style="width:52px">开</b>
   </div>
   <div class="prow"><span>捕蝇草数量</span><input type="range" id="q-venusn" min="0" max="16" step="1" value="6"><b id="v-venusn">6</b></div>
 
-
-  <div class="pg">环境</div>
+  <div class="pg">▍环境与策略</div>
   <div class="prow"><span>温度 ℃</span><input type="range" id="q-temp" min="15" max="32" step="0.5" value="25"><b id="v-temp">25</b></div>
-  <div class="prow"><span>果蝇每窝卵</span><input type="range" id="q-fclutch" min="1" max="10" step="1" value="6"><b id="v-fclutch">6</b></div>
   <div class="prow"><span>食物斑块化</span><input type="range" id="q-patchy" min="0" max="1" step="0.05" value="0.7"><b id="v-patchy">0.70</b></div>
+  <div class="prow"><span>个体差异极差</span><input type="range" id="q-tvar" min="0" max="0.5" step="0.02" value="0.2"><b id="v-tvar">±20%</b></div>
+  <div class="prow"><span>低密度优先交配</span>
+    <input type="checkbox" id="q-lowfind" checked style="width:auto">
+    <b id="v-lowfind" style="width:52px">开</b>
+  </div>
+  <div class="prow"><span>果蝇阈值</span><input type="range" id="q-lowfly" min="2" max="30" step="1" value="12"><b id="v-lowfly">12</b></div>
+  <div class="prow"><span>蜘蛛阈值</span><input type="range" id="q-lowpred" min="1" max="10" step="1" value="3"><b id="v-lowpred">3</b></div>
 
-  <div class="pg">能量 / 代谢</div>
-  <div class="prow"><span>基础代谢</span><input type="range" id="q-met" min="0.5" max="6" step="0.1" value="2.2"><b id="v-met">2.2</b></div>
-  <div class="prow"><span>饥饿阈值</span><input type="range" id="q-hung" min="20" max="120" step="1" value="55"><b id="v-hung">55</b></div>
-  <div class="prow"><span>进食速率</span><input type="range" id="q-eat" min="5" max="40" step="1" value="18"><b id="v-eat">18</b></div>
-  <div class="prow"><span>食物能量</span><input type="range" id="q-fen" min="400" max="3000" step="100" value="1200"><b id="v-fen">1200</b></div>
-
-  <div class="pg">繁殖 / 寿命</div>
-  <div class="prow"><span>繁殖能量门槛</span><input type="range" id="q-breed" min="60" max="170" step="5" value="75"><b id="v-breed">75</b></div>
-  <div class="prow"><span>孵化时间</span><input type="range" id="q-egg" min="3" max="90" step="1" value="11"><b id="v-egg">11</b></div>
-  <div class="prow"><span>寿命</span><input type="range" id="q-life" min="60" max="800" step="10" value="230"><b id="v-life">220</b></div>
-  <div class="prow"><span>交配冷却</span><input type="range" id="q-mate" min="4" max="60" step="1" value="14"><b id="v-mate">14</b></div>
-
-  <div class="pg">天敌</div>
-  <div class="prow"><span>蜘蛛速度</span><input type="range" id="q-psp" min="0.005" max="0.06" step="0.002" value="0.030"><b id="v-psp">0.030</b></div>
-  <div class="prow"><span>饱腹时长 /s</span><input type="range" id="q-satiety" min="0" max="120" step="5" value="45"><b id="v-satiety">45</b></div>
-  <div class="prow"><span>捕食概率 /s</span><input type="range" id="q-pcatch" min="0.3" max="6" step="0.1" value="1.1"><b id="v-pcatch">1.1</b></div>
-  <div class="prow"><span>学习率</span><input type="range" id="q-learn" min="0.05" max="1.2" step="0.05" value="0.35"><b id="v-learn">0.35</b></div>
-  <div class="prow"><span>遗忘率 /s</span><input type="range" id="q-forget" min="0" max="0.03" step="0.001" value="0.010"><b id="v-forget">0.010</b></div>
-
-  <div class="pg">蜘蛛繁衍</div>
-  <div class="prow"><span>繁殖能量门槛</span><input type="range" id="q-pbreed" min="60" max="160" step="5" value="135"><b id="v-pbreed">135</b></div>
-  <div class="prow"><span>蜘蛛卵孵化</span><input type="range" id="q-pegg" min="5" max="160" step="1" value="16"><b id="v-pegg">16</b></div>
-  <div class="prow"><span>蜘蛛寿命</span><input type="range" id="q-plife" min="60" max="2400" step="10" value="260"><b id="v-plife">260</b></div>
-  <div class="prow"><span>初始蜘蛛</span><input type="range" id="q-pinit" min="0" max="20" step="1" value="8"><b id="v-pinit">8</b></div>
-  <div class="prow"><span>相遇半径</span><input type="range" id="q-mater" min="0.04" max="0.45" step="0.01" value="0.16"><b id="v-mater">0.16</b></div>
-  <div class="prow"><span>每窝数量</span><input type="range" id="q-pclutch" min="1" max="6" step="1" value="3"><b id="v-pclutch">3</b></div>
-  <div class="prow"><span>产卵冷却</span><input type="range" id="q-pmatecd" min="6" max="900" step="1" value="45"><b id="v-pmatecd">45</b></div>
-  <div class="prow"><span>蜘蛛软容量</span><input type="range" id="q-psoftcap" min="2" max="40" step="1" value="6"><b id="v-psoftcap">6</b></div>
-  <div class="prow"><span>蜘蛛安全阀</span><input type="range" id="q-pmax" min="10" max="80" step="2" value="60"><b id="v-pmax">60</b></div>
-
-  <div class="pg">种群</div>
-  <div class="prow"><span>初始数量</span><input type="range" id="q-init" min="4" max="40" step="1" value="16"><b id="v-init">16</b></div>
-  <div class="prow"><span>果蝇软容量</span><input type="range" id="q-softcap" min="10" max="120" step="2" value="32"><b id="v-softcap">32</b></div>
-  <div class="prow"><span>保种阈值（低于就放开繁殖）</span><input type="range" id="q-lowkeep" min="10" max="80" step="2" value="40"><b id="v-lowkeep">40</b></div>
-  <div class="prow"><span>食物供给系数</span><input type="range" id="q-foodk" min="0.2" max="1.2" step="0.05" value="0.55"><b id="v-foodk">0.55</b></div>
-  <div class="prow"><span>数量安全阀</span><input type="range" id="q-max" min="100" max="600" step="50" value="400"><b id="v-max">400</b></div>
   <div class="pfoot"><button id="pReset">↺ 恢复默认</button></div>
 </div>
 
@@ -260,7 +272,9 @@ border-bottom:1px solid #252a38;padding-bottom:2px}
   <div class="brow"><span>编号 / 代数</span><b id="o-id">—</b></div>
   <div class="brow"><span>状态</span><b id="o-state">—</b></div>
   <div class="brow"><span>能量</span><b id="o-energy">—</b></div>
+  <div class="brow"><span>饱腹感</span><b id="o-sat">—</b></div>
   <div class="brow"><span>年龄 / 已活</span><b id="o-age">—</b></div>
+  <div class="brow"><span>个体特质</span><b id="o-trait">—</b></div>
   <div class="brow"><span>剩余寿命</span><b id="o-life">—</b></div>
   <div class="brow predonly"><span>捕食次数</span><b id="o-kill">—</b></div>
 
@@ -301,6 +315,7 @@ border-bottom:1px solid #252a38;padding-bottom:2px}
 <div class="legend" id="legend">
   <div><i class="d" style="background:#7c8cff"></i>果蝇·巡游/觅食</div>
   <div><i class="d" style="background:#8ee07a"></i>果蝇·进食</div>
+  <div><i class="d" style="background:transparent;border:1.5px solid rgba(240,90,110,.75)"></i>报警信息素（同伴被害处）</div>
   <div><i class="d" style="background:#22d3ee"></i>果蝇·求偶</div>
   <div><i class="d" style="background:#c084fc"></i>果蝇·交配</div>
   <div><i class="d" style="background:#f87171"></i>果蝇·逃跑</div>
@@ -680,10 +695,13 @@ function readFrogOut(fr){
   fr.fJump   = frRate(br, FR.jump);
 }
 
-var P={speed:0.030, met:1.4, hungry:55, eat:22, breedE:75, eggT:11, life:230,
+var P={speed:0.030, met:1.4, hungry:55, eat:22, breedE:75, satE:140, riskP:0.4, traitVar:0.2,
+       pheroOn:1, pheroT:20, pheroR:0.12, pheroK:1.15,
+       feedMax:5, foodDecay:0.8,
+       thFeed:6, thEsc:20, thOvip:8, eggT:11, life:230,
        predFear:0.5, learn:0.35, forget:0.010, mateCD:14,
-       foodE:1700, predSpeed:0.030, predChase:0.030, catchP:1.1, initN:16, maxPop:400, softCap:32, pInit:8,
-       pBreedE:135, pEggT:16, pLife:260, pMax:60, pSoftCap:6,
+       foodE:1700, predSpeed:0.030, predChase:0.030, catchP:0.8, initN:16, maxPop:400, softCap:32, pInit:8,
+       pBreedE:135, pEggT:16, pLife:260, pMax:60, pSoftCap:15,
        mateR:0.16, pMateCD:45, pClutch:3, satiety:45,
        temp:25, fClutch:6, patchy:0.5,
        lowFind:1, lowFly:12, lowPred:3, lowKeep:40,
@@ -708,6 +726,18 @@ function bindP(id,key,fmt){
 bindP('q-met','met',function(v){return v.toFixed(1);});
 bindP('q-hung','hungry',function(v){return v.toFixed(0);});
 bindP('q-eat','eat',function(v){return v.toFixed(0);});
+bindP('q-sate','satE',function(v){return v.toFixed(0);});
+bindP('q-tvar','traitVar',function(v){return '±'+Math.round(v*100)+'%';});
+bindP('q-feedmax','feedMax',function(v){return v.toFixed(0);});
+bindP('q-fdecay','foodDecay',function(v){return v.toFixed(1);});
+bindP('q-pht','pheroT',function(v){return v.toFixed(0);});
+bindP('q-phr','pheroR',function(v){return v.toFixed(2);});
+bindP('q-phk','pheroK',function(v){return v.toFixed(2);});
+bindP('q-thfeed','thFeed',function(v){return v.toFixed(0);});
+bindP('q-thesc','thEsc',function(v){return v.toFixed(0);});
+bindP('q-thovip','thOvip',function(v){return v.toFixed(0);});
+bindP('q-phon','pheroOn',function(v){return v>=0.5?'开':'关';});
+bindP('q-risk','riskP',function(v){return Math.round(v*100)+'%';});
 bindP('q-fen','foodE',function(v){return v.toFixed(0);});
 bindP('q-breed','breedE',function(v){return v.toFixed(0);});
 bindP('q-egg','eggT',function(v){return v.toFixed(0);});
@@ -801,6 +831,13 @@ function freeSpot(minH,maxH){
   }
   return {u:0.5,v:0.5,h:hAt(0.5,0.5)};
 }
+/* ── 报警信息素：同伴被吃时释放，附近果蝇闻到就绕开 ── */
+var pheros=[];
+function releaseAlarm(u,v){
+  if(!P.pheroOn) return;
+  if(pheros.length>150) pheros.shift();
+  pheros.push({u:u,v:v,ttl:(P.pheroT||20),life:(P.pheroT||20)});
+}
 function addFood(){
   var cap = Math.min(70, (P.foodBase||15) + Math.floor(flies.length*(P.foodK||0.55)));
   if(foods.length>=cap) return;
@@ -823,6 +860,11 @@ function addPred(u,v){
     }
   }
   preds.push({u:s.u,v:s.v,dir:Math.random()*6.28,sp:0.012,
+              // 个体特质（均值=面板参数，幅度由「个体差异极差」控制）
+              metK:traitK(1.0),      // 代谢
+              catchK:traitK(1.25),   // 捕食成功率
+              clutchK:traitK(1.5),   // 每窝卵数
+              spdK:traitK(0.6),      // 速度
               energy:70+Math.random()*40, age:Math.random()*60,
               lifeMax: P.pLife*(0.85+Math.random()*0.35), cd:8+Math.random()*8, mateLock:0,
               id:pidSeq++, gen:(arguments[2]||1), kill:0,
@@ -886,6 +928,12 @@ function nearestLand(u,v){
   }
   return null;
 }
+/* 个体特质：以面板参数为均值，按「个体差异极差」上下浮动 */
+function traitK(mult){
+  var sp=(P.traitVar===undefined?0.2:P.traitVar)*(mult||1);
+  if(sp<=0) return 1;
+  return Math.max(0.25, 1 + (Math.random()*2-1)*sp);
+}
 function addFly(u,v,g){
   if(flies.length>=P.maxPop) return null;      // 数量上限，防止越跑越卡
   var hs=[], hc=[], hm=[];
@@ -894,7 +942,16 @@ function addFly(u,v,g){
     age:Math.random()*70,                            // 同龄化会一起老死，先错开
     lifeMax: P.life*(0.70+Math.random()*0.70),       // 个体寿命差异 ±30%（避免整批一起老死）
     gen:g||1,aversion:0,br:newFlyBrain(),cd:8+Math.random()*10,state:'巡游',
-    intent:'wander',aim:null,intentT:0,mateLock:0,fleeLock:0,
+    // 个体特质（均值=面板参数，幅度由「个体差异极差」控制）
+    metK:traitK(1.0),      // 代谢
+    eatK:traitK(0.75),     // 进食速度
+    learnK:traitK(1.25),   // 学习率
+    forgetK:traitK(1.25),  // 遗忘率
+    clutchK:traitK(1.5),   // 每窝卵数（差异更明显）
+    spdK:traitK(0.6),      // 移动速度
+    satEK:traitK(0.35),    // 饱腹阈值
+
+    intent:'wander',aim:null,intentT:0,mateLock:0,fleeLock:0,satT:0,
     hs:hs,hc:hc,hm:hm,spkAcc:0,chased:0,fleeTime:0,avRate:0,avMark:0,avMarkT:0,
     avHist:(function(){var z=[];for(var q=0;q<60;q++)z.push(0);return z;})(),avAcc:0});
 }
@@ -918,6 +975,25 @@ function predCrowdFactor(){
 }
 function decide(f){
   if(f.mateLock>0){ f.intent='mate_locked'; return; }
+  // 报警信息素：闻到同类死亡的信号就绕开（并加深厌恶性）
+  if(P.pheroOn && pheros.length){
+    var bp=null, bpd=9e9;
+    for(var pi2=0; pi2<pheros.length; pi2++){
+      var ph=pheros[pi2];
+      var d2=(ph.u-f.u)*(ph.u-f.u)+(ph.v-f.v)*(ph.v-f.v);
+      if(d2<bpd){ bpd=d2; bp=ph; }
+    }
+    if(bp && bpd < (P.pheroR||0.12)*(P.pheroR||0.12)){
+      var ax=f.u-bp.u, ay=f.v-bp.v, al=Math.hypot(ax,ay)||1;
+      f.aversion=Math.min(1, f.aversion + (P.pheroK||1.15)*0.10);
+      // 只打断"闲逛"：正在吃饭/求偶的个体不放弃目标，否则会被吓得饿死
+      if(!f.aim){
+        f.intent='wander'; f.aim=null;
+        f.dir=Math.atan2(ay/al, ax/al);                // 背对气味源
+        return;
+      }
+    }
+  }
   // 目标坚持：已有目标且仍有效时，70% 概率继续做这件事（不会两三秒换个方向）
   if(f.aim && Math.random()<0.72){
     if(f.intent==='food' && foods.indexOf(f.aim)>=0) return;
@@ -940,26 +1016,31 @@ function decide(f){
     }
     if(bm && bd<(low?0.75:0.25)){ f.intent='mate'; f.aim=bm; return; }   // 稀少时搜索半径 ×3
   }
-  // 捕蝇草气味引诱（少量）：附近有夹子时，偶尔被吸引过去
-  if(traps.length && Math.random() < 0.08){
-    var bt=null, btd=9e9;
-    for(var ti2=0; ti2<traps.length; ti2++){
-      var tr2=traps[ti2];
-      if(tr2.closedT>0) continue;                          // 闭合中：不散发蜜汁
-      var dt2=(tr2.u-f.u)*(tr2.u-f.u)+(tr2.v-f.v)*(tr2.v-f.v);
-      if(dt2<btd){ btd=dt2; bt=tr2; }
-    }
-    if(bt && btd < 0.0324){                 // 0.18 距离内才闻得到（少量吸引）
-      f.intent='trap'; f.aimLure={u:bt.u,v:bt.v};
-      return;
-    }
+  // 饱腹中且还不饿 → 不去啃食物，随便逛（饿到阈值以下会自动恢复觅食）
+  if(f.energy >= (P.satE||140)*(f.satEK||1)){   // 能量够 = 饱腹（阈值有个体差异），不找食物
+    f.intent='wander'; f.aim=null; return;
   }
+  // 觅食渴望：越饿越想找吃的（饱腹 0 → 正常 0.35 → 饥饿 0.8 → 极度饥饿 1）
+  var LV = satLevel(f.energy, f.satT);
+  var want = LV>=3 ? 0 : (LV===2 ? 0.35 : (LV===1 ? 0.8 : 1));
+  if(Math.random() > want){ f.intent='wander'; f.aim=null; return; }
   // 否则找食物
   var bf=null, fd=9e9;
   for(var k=0;k<foods.length;k++){
     var fo=foods[k];
     var d2=(fo.u-f.u)*(fo.u-f.u)+(fo.v-f.v)*(fo.v-f.v);
     if(d2<fd){fd=d2;bf=fo;}
+  }
+  // 捕蝇草的蜜汁气味和食物同等吸引：范围内谁近就奔谁（果蝇分不清那是陷阱）
+  var bt2=null, bdt=9e9;
+  for(var tk=0; tk<traps.length; tk++){
+    var trk=traps[tk];
+    if(trk.closedT>0) continue;                        // 闭合消化中，不散发蜜汁
+    var dtk=(trk.u-f.u)*(trk.u-f.u)+(trk.v-f.v)*(trk.v-f.v);
+    if(dtk<bdt){ bdt=dtk; bt2=trk; }
+  }
+  if(bt2 && bdt < 0.0625 && bdt < fd){                 // 0.25 范围内，且比最近的果实更近
+    f.intent='trap'; f.aimLure={u:bt2.u,v:bt2.v}; return;
   }
   if(bf){ f.intent='food'; f.aim=bf; return; }
   f.intent='wander'; f.aim=null;
@@ -1114,7 +1195,10 @@ $('#pClose').onclick=function(){
 var PID = {
   met:'q-met', hungry:'q-hung', eat:'q-eat', foodE:'q-fen', breedE:'q-breed',
   eggT:'q-egg', life:'q-life', mateCD:'q-mate', predSpeed:'q-psp', catchP:'q-pcatch',
-  learn:'q-learn', forget:'q-forget', initN:'q-init', pInit:'q-pinit', satiety:'q-satiety',
+  learn:'q-learn', forget:'q-forget', initN:'q-init', pInit:'q-pinit', satiety:'q-satiety', satE:'q-sate', traitVar:'q-tvar', riskP:'q-risk',
+  feedMax:'q-feedmax', foodDecay:'q-fdecay',
+  pheroT:'q-pht', pheroR:'q-phr', pheroK:'q-phk',
+  thFeed:'q-thfeed', thEsc:'q-thesc', thOvip:'q-thovip',
   softCap:'q-softcap', pSoftCap:'q-psoftcap', maxPop:'q-max', pMax:'q-pmax',
   pBreedE:'q-pbreed', pEggT:'q-pegg', pLife:'q-plife', mateR:'q-mater',
   pMateCD:'q-pmatecd', pClutch:'q-pclutch', temp:'q-temp', fClutch:'q-fclutch',
@@ -1192,10 +1276,33 @@ drawLegendIcons();
 genTerrain(); reset();          // 世界初始化（此时 NET 已就绪）
 if(/[?&]dbg=1/.test(location.search)){
   window.__dbg={ get frogs(){return frogs;}, get traps(){return traps;},
-                 get preds(){return preds;}, hAt:hAt, isNearWater:isNearWater,
+                 get preds(){return preds;}, get flies(){return flies;},
+                 get foods(){return foods;}, get eggs(){return eggs;},
+                 get pheros(){return pheros;}, releaseAlarm:releaseAlarm,
+                 pick:function(id){ selected=flies.filter(function(x){return x.id===id;})[0]||null;
+                                    if(selected){ selPred=null; selFrog=null; } return !!selected; },
+                 satLabel:satLabel, satLevel:satLevel,
+                 hAt:hAt, isNearWater:isNearWater,
                  waterEdgeSpot:waterEdgeSpot, WATER:WATER };
 }
 /* 世界状态 → 感觉输入（把行为事件灌进对应感觉群） */
+/* 饱腹感分级：饱腹 / 正常 / 饥饿 / 极度饥饿（面板文字 + 觅食渴望共用）*/
+function satLevel(e, satT){                  // 只按能量分档（satT 保留参数但不参与判定）
+  if(e >= (P.satE||140)) return 3;           // 饱腹
+  if(e >= P.hungry) return 2;                // 正常
+  if(e >= P.hungry*0.5) return 1;            // 饥饿
+  return 0;                                  // 极度饥饿
+}
+function satLabel(e, satT){
+  return ['极度饥饿','饥饿','正常','饱腹'][satLevel(e,satT)];   // 只给状态词，数值由"能量"那行显示
+}
+function satLabelP(e, satT){                 // 蜘蛛版：按 pBreedE(135) 分档
+  var need=P.pBreedE||135;
+  if(e>=need) return '饱腹';
+  if(e>=need*0.6) return '正常';
+  if(e>=need*0.35) return '饥饿';
+  return '极度饥饿';
+}
 function nearestThreat(f){
   var best={d:9e9, kind:'—', u:0, v:0};
   for(var i=0;i<preds.length;i++){
@@ -1206,7 +1313,7 @@ function nearestThreat(f){
     var d2=Math.hypot(frogs[j].u-f.u, frogs[j].v-f.v);
     if(d2<best.d) best={d:d2, kind:'青蛙', u:frogs[j].u, v:frogs[j].v};
   }
-  // 注意：捕蝇草不算威胁——果蝇闻的是它的蜜汁，不会被吓跑（现实也是如此）
+  // 注意：捕蝇草不算"会追的威胁"——果蝇闻的是它的蜜汁，不会被吓跑（现实也是如此）
   return best;
 }
 function feedBrainInputs(f, dt){
@@ -1214,7 +1321,7 @@ function feedBrainInputs(f, dt){
   var ext=br.ext;
   for(var i=0;i<br.n;i++) ext[i]=0;
   var th=nearestThreat(f);
-  var nearP = Math.max(0, 1 - th.d*8);       // 威胁强度（含青蛙/捕蝇草）
+  var nearP = Math.max(0, 1 - th.d*8);       // 威胁强度（含青蛙）
   var nearF=1;
   for(var fi=0;fi<foods.length;fi++){
     var d2=Math.hypot(foods[fi].u-f.u, foods[fi].v-f.v)*8;
@@ -1265,7 +1372,7 @@ function stepBrain(f,dt){
   if(tgtA > f.aversion){
     f.aversion += (tgtA-f.aversion) * Math.min(1, 0.35*dt);        // 学习收敛速度
   }else{
-    f.aversion = Math.max(tgtA, f.aversion - P.forget*dt);        // 按遗忘率慢慢掉
+    f.aversion = Math.max(tgtA, f.aversion - P.forget*(f.forgetK||1)*dt);   // 按遗忘率(个体)慢慢掉
   }
   // 学习/遗忘速率
   f.avMarkT=(f.avMarkT||0)+dt;
@@ -1331,7 +1438,7 @@ function step(dt,light){
       p.dir+=(Math.random()-0.5)*1.4*dt;
       p.sp = P.predSpeed * 0.47 * (0.6 + Math.min(1, p.spWalk/25)*0.7);
     }
-    var spd0 = p.satT>0 ? p.sp*0.45 : p.sp;           // 消化中走得慢
+    var spd0 = (p.satT>0 ? p.sp*0.45 : p.sp) * (p.spdK||1);   // 消化中走得慢 · 个体速度差异
     var nu=p.u+Math.cos(p.dir)*spd0*dt, nv=p.v+Math.sin(p.dir)*spd0*dt;
     if(hAt(nu,nv)<WATER+0.015){ p.dir+=Math.PI*0.75; }   // 前面是水就转向
     else { p.u=nu; p.v=nv; }
@@ -1344,7 +1451,8 @@ function step(dt,light){
     p._lu=p.u; p._lv=p.v;
     // 蜘蛛寿命与代谢
     p.age+=dt*(1/tempLifeK());          // 温度影响寿命
-    p.energy-=0.15*tempMetK()*dt; p.cd=Math.max(0,p.cd-dt);   // 更耐饿
+    // 追猎时更费能量（2.5×），平时慢走
+    p.energy-=0.15*(p.metK||1)*(p.chasingNow?2.0:1)*tempMetK()*dt; p.cd=Math.max(0,p.cd-dt);   // 更耐饿
     if(p.age>(p.lifeMax||P.pLife) || p.energy<=0){
       if(selPred===p){ selPred=null; }   // 面板保持
       preds.splice(pi,1); continue;      // 蜘蛛死了，清掉选中
@@ -1374,9 +1482,11 @@ function step(dt,light){
     if(pLast && p.energy>pNeedE && p.cd<=0){        // 兼性孤雌（稀有时才开）
       p.cd=45; p.energy-=30;
       var elS=nearestLand(p.u,p.v);
-      if(elS && eggs.length<60) eggs.push({u:elS.u,v:elS.v,t:0,gen:(p.gen||1)+1,spider:true});
+      if(elS && eggs.length<60) eggs.push({u:elS.u,v:elS.v,t:0,gen:(p.gen||1)+1,spider:true,hatchK:traitK(1.4)});
     }
-    var pCrowded = preds.length >= (P.pSoftCap||14);
+    // 软容量不得低于初始投放数，否则开局就"超容量"，蜘蛛永远不繁殖
+    var pSoftLim = Math.max(P.pSoftCap||14, P.pInit||0, 4);
+    var pCrowded = preds.length >= pSoftLim;
     if(p.energy>pNeedE && p.cd<=0 && preds.length<P.pMax && (!pCrowded || preds.length<6)){
       var mateP=null, mpd=9e9;
       preds.forEach(function(o){
@@ -1389,10 +1499,10 @@ function step(dt,light){
         p.layCount=(p.layCount||0)+1; mateP.layCount=(mateP.layCount||0)+1;
         p.energy-=40; mateP.energy-=40;
         var el1=nearestLand((p.u+mateP.u)/2,(p.v+mateP.v)/2);
-        var nClutch=Math.max(1, Math.round(P.pClutch||1));
+        var nClutch=Math.max(1, Math.round((P.pClutch||1)*(p.clutchK||1)));
         for(var ci=0; ci<nClutch && eggs.length<60; ci++){
           var elc=nearestLand(el1?el1.u:p.u, el1?el1.v:p.v) || el1;
-          if(elc) eggs.push({u:elc.u+(Math.random()-0.5)*0.02, v:elc.v+(Math.random()-0.5)*0.02,
+          if(elc) eggs.push({u:elc.u+(Math.random()-0.5)*0.02, v:elc.v+(Math.random()-0.5)*0.02, hatchK:traitK(1.4),
                              t:0, gen:Math.max(p.gen||1,mateP.gen||1)+1, spider:true});
         }
       }
@@ -1403,8 +1513,8 @@ function step(dt,light){
       if(Math.hypot(fy.u-p.u, fy.v-p.v) < 0.030){
         fy.aversion=Math.min(1, fy.aversion+P.learn*dt*2);
         var strikeK = 0.55 + Math.min(1, p.spStrike/22)*0.95;
-        if(Math.random()<P.catchP*dt*strikeK){
-          flies.splice(fi,1); eaten++; spiderKills++; p.energy=Math.min(175, p.energy+95);
+        if(Math.random()<P.catchP*(p.catchK||1)*dt*strikeK){
+          releaseAlarm(fy.u,fy.v); flies.splice(fi,1); eaten++; spiderKills++; p.energy=Math.min(175, p.energy+95);
           p.kill=(p.kill||0)+1;
           p.satT=(P.satiety||45)*(0.75+Math.random()*0.6);   // 吃饱歇一会儿（有个体差异）
           if(selected===fy){ selected=null; }   // 选中个体被吃了，面板保持
@@ -1430,8 +1540,28 @@ function step(dt,light){
   for(var i=flies.length-1;i>=0;i--){
     var f=flies[i];
     f.age+=dt*(1/tempLifeK());   // 温度影响寿命   // 温度影响寿命
-    f.energy-=P.met*tempMetK()*dt;      // 温度影响代谢
+    // 剧烈活动更费能量：逃跑 1.8×、交配 1.5×、求偶 1.2×、冒险冲刺 1.3×
+    var actK = (f.state==='逃跑') ? 1.8
+             : (f.state==='交配') ? 1.5
+             : (f.state==='求偶') ? 1.2
+             : ((f.riskT||0)>0 ? 1.3 : 1);
+    f.energy-=P.met*(f.metK||1)*actK*tempMetK()*dt;   // 温度影响代谢 × 个体代谢率 × 活动强度
     f.cd=Math.max(0,f.cd-dt);           // 交配冷却（之前被误吞进注释，导致永不繁殖）
+    f.satT=Math.max(0,(f.satT||0)-dt);  // （保留字段，仅兼容旧存档；饱腹已改为能量制）
+    f.riskT=Math.max(0,(f.riskT||0)-dt); // 铤而走险倒计时
+    // 极度饥饿 → 按「冒险概率/秒」铤而走险：一段时间内无视天敌，直奔最近的吃的
+    if((f.riskT||0)<=0 && f.energy < P.hungry*0.5 && foods.length){
+      if(Math.random() < (P.riskP===undefined?0.4:P.riskP)*dt){
+        f.riskT = 4 + Math.random()*3;
+        f.riskN = (f.riskN||0) + 1;
+        var btx=null, bdx=9e9;
+        for(var fx=0; fx<foods.length; fx++){
+          var ddx=(foods[fx].u-f.u)*(foods[fx].u-f.u)+(foods[fx].v-f.v)*(foods[fx].v-f.v);
+          if(ddx<bdx){ bdx=ddx; btx=foods[fx]; }
+        }
+        if(btx){ f.intent='food'; f.aim=btx; f.intentT=Math.min(f.intentT,0.3); }
+      }
+    }
     // 僵住自救：位置几乎没变就重新决策
     if(f._lu!==undefined){
       var moved=Math.abs(f.u-f._lu)+Math.abs(f.v-f._lv);
@@ -1454,11 +1584,18 @@ function step(dt,light){
       var learnR=0.05+0.05*f.aversion;
       if(nd<learnR){
         var near=1-nd/learnR;                         // 0~1
-        f.aversion=Math.min(1, f.aversion + P.learn*(0.4+0.6*near)*dt);
+        f.aversion=Math.min(1, f.aversion + P.learn*(f.learnK||1)*(0.4+0.6*near)*dt);
       }
-      // 再判逃跑：学会后躲得更远
-      if(nd<0.02+0.06*f.aversion){
-        if(!(f.fleeLock>0)){ f.chased=(f.chased||0)+1; f.fleeLock=1.2; }   // 只在没锁时触发
+      // 再判逃跑：学会后躲得更远（滞回：进入半径小、退出半径大，避免在边界反复触发）
+      var fleeR = 0.02+0.06*f.aversion;
+      var braving = (f.riskT||0)>0;          // 极度饥饿、铤而走险中：不逃
+      if(!braving && f.fleeLock<=0 && nd<fleeR){
+        f.chased=(f.chased||0)+1;
+        var escK = (f.mnEsc>0.01) ? Math.max(0.6, Math.min(2.0, f.mnEsc/(P.thEsc||20))) : 1;
+        f.fleeLock=1.3*escK;                 // 逃逸神经元放电越强，逃得越久
+      }
+      if(!braving && f.fleeLock>0 && nd<fleeR*1.6 && f.fleeLock<0.7){
+        f.fleeLock=0.7;          // 还在危险区就续命，不许半路停下抖
       }
     }
     /* 逃跑锁定：被吓到后持续逃 1.2 秒，避免状态闪烁 */
@@ -1474,7 +1611,7 @@ function step(dt,light){
     if(f.fleeLock>0 && np){
       var fax=f.u-np.u, fav=f.v-np.v, fal=Math.hypot(fax,fav)||1;
       f.dir=Math.atan2(fav,fax);
-      var fsp=P.speed*1.6*(f.energy<P.hungry?0.8:1.0);
+      var fsp=P.speed*(f.spdK||1)*1.6*(f.energy<P.hungry?0.8:1.0);
       f.u+=fax/fal*fsp*dt; f.v+=fav/fal*fsp*dt;
       f.u=Math.max(0.03,Math.min(0.97,f.u)); f.v=Math.max(0.03,Math.min(0.97,f.v));
       f.state='逃跑';
@@ -1499,10 +1636,11 @@ function step(dt,light){
           f.cd=P.mateCD; mo.cd=P.mateCD; f.mateLock=3.5; mo.mateLock=3.5;
           f.energy-=35; mo.energy-=35; mates++;
           var elm=nearestLand(f.u,f.v);
-          var nEgg2=Math.max(1, Math.round(P.fClutch||1));
+          var nEgg2=Math.max(1, Math.round((P.fClutch||1)*(f.clutchK||1)));
+          if((f.mnStep||0) > (P.thOvip||8)) nEgg2 += 1;   // 产卵神经元兴奋 → 多一颗
           for(var ei2=0; ei2<nEgg2 && eggs.length<60; ei2++){
             var elq=nearestLand(f.u+(Math.random()-0.5)*0.02, f.v+(Math.random()-0.5)*0.02) || elm;
-            if(elq) eggs.push({u:elq.u,v:elq.v,t:0,gen:Math.max(f.gen,mo.gen)+1});
+            if(elq) eggs.push({u:elq.u,v:elq.v,t:0,gen:Math.max(f.gen,mo.gen)+1,hatchK:traitK(1.4)});
           }
           f.state='交配'; mo.state='交配';
           break;
@@ -1518,21 +1656,42 @@ function step(dt,light){
     if(goal){
       var gx=goal.u-f.u, gv=goal.v-f.v, gl=Math.hypot(gx,gv)||1;
       // 目标方向 + 随机抖动（真实昆虫是"忽东忽西地接近"，不是拉直线）
-      f.dir=Math.atan2(gv,gx) + (Math.random()-0.5)*0.7;
-      var sp=P.speed*(f.energy<P.hungry?1.15:0.8);
+      // 朝目标平滑转向（原来每帧随机折返，看起来像"乱跳"）
+      var tg=Math.atan2(gv,gx);
+      var dA=((tg-f.dir+Math.PI*3)%(Math.PI*2))-Math.PI;
+      f.dir += dA*Math.min(1,6*dt) + (Math.random()-0.5)*1.4*dt;
+      var sp=P.speed*(f.spdK||1)*(f.energy<P.hungry?1.15:0.8)*((f.riskT||0)>0?1.3:1);   // 冒险时冲得更猛
       if(f.intent==='mate') sp*=1.35;      // 求偶冲刺，追得上同速个体
       f.u+=gx/gl*sp*dt; f.v+=gv/gl*sp*dt;
 
       if(f.intent==='trap' && gl<0.020){ f.intentT=0; f.aimLure=null; f.state='觅食'; }
       if(f.intent==='food' && gl<0.012){
-        var amt=Math.min(P.eat*dt,goal.energy);
+        // 一块食物能同时容纳的进食者数量（超过就排队换地方）
+        var nEat=0;
+        for(var qe=0; qe<flies.length; qe++){
+          var oe=flies[qe];
+          if(oe!==f && oe.state==='进食' && oe.aim===goal) nEat++;
+        }
+        if(nEat >= (P.feedMax||5)){
+          f.aim=null; f.intent='wander'; f.intentT=1+Math.random();
+          f.dir+=1.4+Math.random();
+          f.u=Math.max(0.03,Math.min(0.97,f.u)); f.v=Math.max(0.03,Math.min(0.97,f.v));
+          continue;
+        }
+        // 行为读出：摄食神经元 MN_feed 放电越高吃得越快（阈值可调）
+        var feedGate = (f.mnFeed>0.01)
+            ? Math.max(0.4, Math.min(1.8, f.mnFeed/(P.thFeed||6))) : 1;
+        var amt=Math.min(P.eat*(f.eatK||1)*feedGate*dt,goal.energy);
         f.energy=Math.min(175,f.energy+amt); goal.energy-=amt*1.0;
         f.state='进食';
+        f.riskT=Math.min(f.riskT||0, 1.2);  // 已经冲到食物了，冒险逐渐收尾（留 1.2s 让状态可见）
         if(goal.energy<=0) foods.splice(foods.indexOf(goal),1);
-        f.intentT=0;
-        // 吃饱了 / 食物吃完了 → 立刻走人，不许原地僵着
+        // 正在进食：别每帧重新决策，否则状态在「觅食/进食」间狂闪
+        f.intentT=Math.max(f.intentT, 0.9);
+        // 吃饱了 / 食物吃完了 → 记一段饱腹期，期间不再回来啃
         if(f.energy>=172 || goal.energy<=0){
           f.aim=null; f.intent='wander';
+          // 不再记时间锁：饱腹完全由能量阈值决定
           f.intentT=1.5+Math.random();
           f.dir+=1.2+Math.random()*1.5;      // 换个方向走
           f.state='巡游';
@@ -1541,10 +1700,11 @@ function step(dt,light){
                 && f.energy>P.breedE && goal.energy>P.breedE){
         f.cd=P.mateCD; goal.cd=P.mateCD; f.energy-=35; goal.energy-=35; mates++;
         var el0=nearestLand(f.u,f.v);
-        var nEgg=Math.max(1, Math.round(P.fClutch||1));
+        var nEgg=Math.max(1, Math.round((P.fClutch||1)*(f.clutchK||1)));
+        if((f.mnStep||0) > (P.thOvip||8)) nEgg += 1;
         for(var ei=0; ei<nEgg && eggs.length<60; ei++){
           var elp=nearestLand(f.u+(Math.random()-0.5)*0.02, f.v+(Math.random()-0.5)*0.02) || el0;
-          if(elp) eggs.push({u:elp.u,v:elp.v,t:0,gen:Math.max(f.gen,goal.gen)+1});
+          if(elp) eggs.push({u:elp.u,v:elp.v,t:0,gen:Math.max(f.gen,goal.gen)+1,hatchK:traitK(1.4)});
         }
         f.mateLock=3.5; goal.mateLock=3.5;
         f.state='交配'; goal.state='交配';
@@ -1554,7 +1714,7 @@ function step(dt,light){
       }
     }else{
       f.dir+=(Math.random()-0.5)*2*dt;
-      f.u+=Math.cos(f.dir)*P.speed*0.7*dt; f.v+=Math.sin(f.dir)*P.speed*0.7*dt;
+      f.u+=Math.cos(f.dir)*P.speed*(f.spdK||1)*0.7*dt; f.v+=Math.sin(f.dir)*P.speed*(f.spdK||1)*0.7*dt;
       f.state='巡游';
       f.intentT=Math.min(f.intentT,0.2);
     }
@@ -1585,7 +1745,7 @@ function step(dt,light){
     if(tgt && td < P.frogReach && fr.cd<=0){
       var tongueK = 0.35 + Math.min(1, fr.fTongue/18)*0.9;
       if(Math.random() < 3.2*dt*tongueK){
-        flies.splice(flies.indexOf(tgt),1); fr.kills++; eaten++; fr.cd=P.frogCD;
+        releaseAlarm(tgt.u,tgt.v); flies.splice(flies.indexOf(tgt),1); fr.kills++; eaten++; fr.cd=P.frogCD;
         fr.tongueT=0.25;
         if(selected===tgt) selected=null;
       }
@@ -1609,7 +1769,7 @@ function step(dt,light){
     for(var fi3=flies.length-1; fi3>=0; fi3--){
       var fl2=flies[fi3];
       if(Math.hypot(fl2.u-tp.u, fl2.v-tp.v) < P.venusReach && Math.random()<0.55*dt*4){
-        flies.splice(fi3,1); tp.caught++; eaten++;
+        releaseAlarm(fl2.u,fl2.v); flies.splice(fi3,1); tp.caught++; eaten++;
         tp.closedT=P.venusCD; tp.cd=P.venusCD;   // 闭合期 = 消化期，全程闭着
         if(selected===fl2) selected=null;
         break;
@@ -1623,7 +1783,7 @@ function step(dt,light){
   /* 卵 */
   for(var k=eggs.length-1;k>=0;k--){
     var e=eggs[k]; e.t+=dt;
-    var readyT = e.spider?P.pEggT:P.eggT;
+    var readyT = (e.spider?P.pEggT:P.eggT) * (e.hatchK||1);   // 每颗卵有自己的孵化时长，避免同批一起孵
     if(e.t > readyT){
       // 卵只管孵；数量靠"抑制繁殖"来控制，不靠丢卵
       if(hAt(e.u,e.v)<WATER+0.02){
@@ -1632,7 +1792,10 @@ function step(dt,light){
         e.u=el2.u; e.v=el2.v;
       }
       if(e.spider){
-        if(preds.length >= P.pMax){ e.t=readyT*0.95; continue; }   // 只受安全阀限制
+        // 孵化也看软容量（原来只看安全阀，蜘蛛会一路涨到 60 只）
+        if(preds.length >= Math.max(P.pSoftCap||14, P.pInit||0, 4)+2 || preds.length >= P.pMax){
+          e.t=readyT*0.95; continue;
+        }
         eggs.splice(k,1); addPred(e.u,e.v,(e.gen||1)); predGen=Math.max(predGen, e.gen||1); hatched++;
       }else{
         if(flies.length >= P.maxPop){ e.t=readyT*0.95; continue; }
@@ -1644,6 +1807,18 @@ function step(dt,light){
         }
         eggs.splice(k,1); gen=Math.max(gen,e.gen); addFly(e.u,e.v,e.gen); hatched++;
       }
+    }
+  }
+  /* 报警信息素衰减 */
+  for(var pq=pheros.length-1; pq>=0; pq--){
+    pheros[pq].ttl-=dt;
+    if(pheros[pq].ttl<=0) pheros.splice(pq,1);
+  }
+  /* 食物自然变质 */
+  if((P.foodDecay||0)>0){
+    for(var df=foods.length-1; df>=0; df--){
+      foods[df].energy -= P.foodDecay*dt;
+      if(foods[df].energy<=0){ foods.splice(df,1); }
     }
   }
   /* 食物补充 */
@@ -1673,6 +1848,19 @@ function draw(){
   ctx.drawImage(terScreen,0,0);
 
   var scale=Math.min(w,h)*0.92*view.zoom;
+  // 报警信息素：红色扩散圈，越淡越接近消散
+  if(P.pheroOn && pheros.length){
+    pheros.forEach(function(ph){
+      var pp=toScreen(ph.u,ph.v);
+      var k=Math.max(0, ph.ttl/(ph.life||1));
+      var rr=Math.max(5, 10*view.zoom*0.6)*(1.35-k*0.5);
+      ctx.beginPath(); ctx.arc(pp[0],pp[1],rr,0,6.283);
+      ctx.strokeStyle='rgba(240,90,110,'+(0.45*k).toFixed(3)+')';
+      ctx.lineWidth=1.6; ctx.stroke();
+      ctx.beginPath(); ctx.arc(pp[0],pp[1],rr*0.45,0,6.283);
+      ctx.fillStyle='rgba(240,90,110,'+(0.12*k).toFixed(3)+')'; ctx.fill();
+    });
+  }
   // 食物
   foods.forEach(function(fd){
     var p=toScreen(fd.u,fd.v);
@@ -1724,16 +1912,20 @@ function draw(){
     // —— 移动（放在渲染里，保证一定执行）——
     (function(fm){
       if(paused){ fm._acc=0; return; }        // 暂停：位置冻结，恢复后不突跳
-      // 按时间节流：每 0.1 秒挪一次（之前每帧都挪，所以快得离谱）
-      fm._acc = (fm._acc||0) + 1/60;
+      // 按时间节流：每 0.1 秒挪一次（用真实帧时长×加速倍率，高刷屏不会快一倍）
+      fm._acc = Math.min(2.0, (fm._acc||0) + frameDt*speedMul);
       if(fm._acc < 0.1) return;
-      fm._acc -= 0.1;
-      var iw = hAt(fm.u,fm.v) < WATER;
-      fm.dir += (Math.random()-0.5)*0.5;
-      var ssp = (iw?0.0020:0.0010)*(0.6+Math.min(1,(fm.fJump||0)/25));   // ≈0.02 / 0.01 单位每秒
-      var nU=fm.u+Math.cos(fm.dir)*ssp, nV=fm.v+Math.sin(fm.dir)*ssp;
-      if(isNearWater(nU,nV)){ fm.u=nU; fm.v=nV; fm.hops=(fm.hops||0)+1; }
-      else { fm.dir += Math.PI; }
+      var nHop = Math.floor(fm._acc/0.1);
+      fm._acc -= nHop*0.1;
+      if(nHop>4) nHop=4;                      // 一帧最多补 4 次，防止大延迟时瞬移
+      for(var hj=0; hj<nHop; hj++){
+        var iw = hAt(fm.u,fm.v) < WATER;
+        fm.dir += (Math.random()-0.5)*0.5;
+        var ssp = (iw?0.0020:0.0010)*(0.6+Math.min(1,(fm.fJump||0)/25));   // ≈0.02 / 0.01 单位每秒
+        var nU=fm.u+Math.cos(fm.dir)*ssp, nV=fm.v+Math.sin(fm.dir)*ssp;
+        if(isNearWater(nU,nV)){ fm.u=nU; fm.v=nV; fm.hops=(fm.hops||0)+1; }
+        else { fm.dir += Math.PI; }
+      }
       fm.u=Math.max(0.04,Math.min(0.96,fm.u));
       fm.v=Math.max(0.04,Math.min(0.96,fm.v));
       // 兜底：万一在旱地（边界夹住等），朝最近的水边挪回来
@@ -2124,6 +2316,9 @@ function drawBrain(){
     else if(p.energy<P.pBreedE*0.8) stTxt='觅食中（找果蝇）';
     else stTxt='追猎/巡游';
     set('o-state', stTxt);
+    set('o-sat', satLabelP(p.energy, p.satT));
+    set('o-trait', '代谢×'+(p.metK||1).toFixed(2)+' 捕食×'+(p.catchK||1).toFixed(2)
+                 +' 产卵×'+(p.clutchK||1).toFixed(2));
     set('o-sp-lay', (p.cd>0?Math.round(p.cd)+' s':'可交配')+' / '+(p.layCount||0)+' 次');
     set('o-energy', Math.round(p.energy)+' / 160');
     set('o-age', Math.round(p.age)+' s');
@@ -2177,7 +2372,7 @@ function drawBrain(){
     // 选中的个体消失了：面板保持打开，显示占位信息
     document.getElementById('bTitle').textContent='🪰 果蝇档案';
     set('bInfo','选中个体已消失');
-    set('o-id','—'); set('o-state','已死亡/被捕获'); set('o-energy','—');
+    set('o-id','—'); set('o-state','已死亡/被捕获'); set('o-energy','—'); set('o-sat','—'); set('o-trait','—');
     set('o-life','—'); set('o-rate','—'); set('o-peak','—'); set('o-trend','—');
     return;
   }
@@ -2189,7 +2384,10 @@ function drawBrain(){
   foods.forEach(function(fd){ nearF=Math.min(nearF, Math.hypot(fd.u-f.u,fd.v-f.v)); });
   set('bInfo','选中 #'+f.id);
   set('o-id','#'+f.id+' / F'+f.gen);
-  set('o-state', f.state);
+  set('o-state', f.state + ((f.riskT||0)>0 ? '（冒险觅食）' : ''));
+  set('o-sat', satLabel(f.energy, f.satT));
+  set('o-trait', '代谢×'+(f.metK||1).toFixed(2)+' 学习×'+(f.learnK||1).toFixed(2)
+               +' 遗忘×'+(f.forgetK||1).toFixed(2)+' 产卵×'+(f.clutchK||1).toFixed(2));
   set('o-energy', Math.round(f.energy)+' / 175');
   set('o-age', Math.round(f.age)+' s');
   var lm=f.lifeMax||P.life;
@@ -2198,6 +2396,13 @@ function drawBrain(){
   set('o-av', Math.round(f.aversion*100)+'%'+(f.aversion>0.005?('  ↓'+fv.toFixed(2)+'%/s'):''));
   set('o-radius',(0.02+0.05*f.aversion).toFixed(3));
   var thN=nearestThreat(f);
+  // 档案显示：捕蝇草对果蝇同样是威胁（只是被蜜汁骗过去，以为是食物），一起参与"最近威胁"的比较
+  for(var tq=0; tq<traps.length; tq++){
+    var tz=traps[tq];
+    if(tz.closedT>0) continue;                      // 闭合消化中，不散发蜜汁
+    var tzd=Math.hypot(tz.u-f.u, tz.v-f.v);
+    if(tzd<thN.d) thN={d:tzd, kind:'捕蝇草', u:tz.u, v:tz.v};
+  }
   set('o-dist', (thN.d<9e8?Math.round(thN.d*1000)+'（'+thN.kind+'）':'—')+' / '+(foods.length?Math.round(nearF*1000):'—'));
   // 三列放电率（Hz）：每格 100ms → 比例×100 ≈ 每秒放电次数
   function avgA(a0){ var t=0; for(var i=0;i<a0.length;i++) t+=a0[i]; return t/(a0.length||1); }
@@ -2230,8 +2435,8 @@ function drawBrain(){
 /* ---------------- 主循环 ---------------- */
 if(/[?&]eggdemo=1/.test(location.search)){      // 观察用：同时放两种卵
   setTimeout(function(){
-    for(var i=0;i<3;i++){ var a=freeSpot(); eggs.push({u:a.u,v:a.v,t:0,gen:1}); }
-    for(var j=0;j<3;j++){ var b=freeSpot(); eggs.push({u:b.u,v:b.v,t:0,gen:1,spider:true}); }
+    for(var i=0;i<3;i++){ var a=freeSpot(); eggs.push({u:a.u,v:a.v,t:0,gen:1,hatchK:traitK(1.4)}); }
+    for(var j=0;j<3;j++){ var b=freeSpot(); eggs.push({u:b.u,v:b.v,t:0,gen:1,spider:true,hatchK:traitK(1.4)}); }
   }, 600);
 }
 if(/[?&]selftest=2/.test(location.search)){          // 濒危测试：3 果蝇 + 1 蜘蛛
@@ -2267,10 +2472,11 @@ if(/[?&]selftest=[1234]/.test(location.search)){
   }, 1500);
 }
 var last=performance.now();
+var frameDt=1/60;   // 本帧真实时长，供渲染层里移动的对象使用
 var DBG=/[?&]dbg=1/.test(location.search), slowFrames=0, maxMs=0, slowRun=0;
 var FAST=/[?&]simfast=1/.test(location.search);
 function loop(now){
-  var dt=Math.min((now-last)/1000,0.05); last=now;
+  var dt=Math.min((now-last)/1000,0.05); last=now; frameDt=dt;
   var t0=performance.now();
   try{
   if(!paused){
