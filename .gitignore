@@ -14,3 +14,6 @@ __pycache__/
 *.bak
 *.bak-*
 .DS_Store
+
+# 本机发布脚本（不含凭证，但仅本机使用）
+release.sh
