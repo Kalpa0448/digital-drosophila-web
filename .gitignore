@@ -1,0 +1,16 @@
+# 大体积数据 / 模型（不进仓库，README 中说明获取方式）
+Drosophila_brain_model/
+nmf/
+flywire_annotations/
+bench_js/
+.venv/
+
+# 运行时产物
+web/jobs/
+web/__pycache__/
+__pycache__/
+*.pyc
+*.log
+*.bak
+*.bak-*
+.DS_Store

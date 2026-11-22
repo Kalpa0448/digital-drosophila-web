@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>大世界 · 2D 等高线</title>
+<style>
+:root{--bg:#0a0d12;--panel:rgba(16,18,25,.93);--line:#252a38;--ink:#e8ecf5;--sub:#8891a6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+font-family:system-ui,-apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif;font-size:13px}
+#cv{position:fixed;inset:0;display:block;touch-action:none;z-index:0;background:#0d1117}
+.top{position:fixed;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:10px 14px;
+background:linear-gradient(180deg,rgba(10,13,18,.96),rgba(10,13,18,0));z-index:10}
+.top b{font-size:15px}
+.top .st{flex:1;color:var(--sub);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button.on{background:#2f3a52 !important;border-color:#6366f1 !important;color:#fff !important;
+box-shadow:0 0 0 1px rgba(99,102,241,.55), 0 0 12px rgba(99,102,241,.35) !important}
+button{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:10px;
+padding:7px 12px;font-size:12.5px;cursor:pointer;touch-action:manipulation}
+.stats .st-hd{display:flex;align-items:center;justify-content:space-between;
+font-size:11.5px;color:var(--ink);margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.stats .st-hd button{background:#1c2130;border:1px solid var(--line);color:var(--ink);
+border-radius:6px;padding:0 6px;font-size:11px;line-height:16px;cursor:pointer}
+.stats .row{font-size:11.5px;line-height:1.85;color:var(--sub)}
+.stats .row i{font-style:normal;color:var(--sub)}
+.stats .row b{color:var(--ink);font-weight:500;margin-right:8px;font-variant-numeric:tabular-nums}
+.stats .grp{font-size:10.5px;color:#8891a6;margin-top:5px;letter-spacing:.03em}
+.stats .sub{font-size:10.5px;line-height:1.7;color:var(--sub);padding-left:12px;border-left:1px solid var(--line);margin-left:3px}
+.stats .sub b{color:#c8d0e0;font-weight:500;font-variant-numeric:tabular-nums}
+.stats.collapsed .st-body{display:none}
+#chart{display:none;position:fixed;right:14px;top:56px;width:310px;background:var(--panel);
+border:1px solid var(--line);border-radius:12px;padding:8px;z-index:11}
+#chart.on{display:block}
+#chart2{display:none;position:fixed;right:14px;top:262px;width:310px;background:var(--panel);
+border:1px solid var(--line);border-radius:12px;padding:8px;z-index:11}
+#chart2.on{display:block}
+#chart2 .ch-hd{font-size:11px;color:var(--sub);margin-bottom:5px;display:flex;justify-content:space-between}
+#chart2 .ch-hd span{opacity:.55;font-size:10px}
+#chartCv2{display:block;width:100%;height:132px;background:#0b0d13;border-radius:8px}
+#chart2 .ch-leg{display:flex;gap:9px;font-size:10.5px;color:var(--sub);margin-top:5px;flex-wrap:wrap}
+#chart2 .ch-leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px}
+@media (max-width:640px){ #chart2{width:calc(100vw - 24px);right:12px;top:262px} }
+#chart .ch-hd{font-size:11px;color:var(--sub);margin-bottom:5px;display:flex;justify-content:space-between}
+#chart .ch-hd span{opacity:.55;font-size:10px}
+#chartCv{display:block;width:100%;height:132px;background:#0b0d13;border-radius:8px}
+#chart .ch-leg{display:flex;gap:9px;font-size:10.5px;color:var(--sub);margin-top:5px;flex-wrap:wrap}
+#chart .ch-leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px}
+@media (max-width:640px){ #chart{width:calc(100vw - 24px);right:12px;top:56px} }
+.stats{position:fixed;left:14px;top:56px;background:var(--panel);border:1px solid var(--line);
+border-radius:12px;padding:10px 12px;font-size:11.5px;line-height:1.85;z-index:10;min-width:150px}
+.stats i{color:var(--sub);font-style:normal}
+.tools{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;display:flex;gap:6px;
+flex-wrap:wrap;justify-content:center;z-index:10;max-width:94vw}
+@media (max-width:640px){ .tools{left:12px;right:12px;transform:none;justify-content:flex-start} }
+
+/* ---------- 图例 ---------- */
+.legend{display:none;position:fixed;right:14px;bottom:70px;background:var(--panel);border:1px solid var(--line);
+border-radius:12px;padding:9px 11px;font-size:11px;color:var(--sub);line-height:1.9;z-index:10}
+.legend .d{display:inline-block;width:11px;height:11px;margin-right:7px;vertical-align:-1px;
+border-radius:50%;text-align:center;line-height:11px;font-size:11px;font-style:normal}
+.legend .d-fly{background:#7c8cff}
+.legend .d-food{background:#e8a33d}
+.legend .d-egg{background:#e9e3d0}
+.legend .d-pred{background:transparent;color:#c0504d;font-weight:700;line-height:9px}
+.legend .d-sel{border:2px solid #fff;background:transparent;width:9px;height:9px}
+.legend .d-eggs{background:#8f3b39;border:1.5px solid #ffb2aa;border-radius:1px;width:11px;height:11px}
+.legend .leg-icon{vertical-align:-5px;margin-right:4px}
+.legend.on{display:block}
+@media (max-width:640px){ .legend{bottom:110px;right:12px;font-size:10.5px} }
+
+#param{position:fixed;right:14px;top:56px;width:300px;max-height:calc(100vh - 120px);overflow:auto;
+background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;display:none;
+z-index:14;box-shadow:0 18px 48px rgba(0,0,0,.5)}
+#param.on{display:block}
+#param .hd{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;font-size:12px}
+#param .hd b{font-size:12.5px}
+#param .hd span{flex:1}
+#param .hd button{background:#1c2130;border:1px solid var(--line);color:var(--ink);
+border-radius:8px;padding:2px 8px;font-size:11.5px;cursor:pointer}
+#param .pg{font-size:10.5px;color:var(--sub);letter-spacing:.06em;margin:10px 0 4px;
+border-bottom:1px solid var(--line);padding-bottom:3px}
+#param .prow{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--sub);margin:6px 0}
+#param .prow span{flex:1}
+#param .prow input{width:92px}
+#param .prow b{width:46px;text-align:right;color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+#param .pfoot{margin-top:12px}
+#param .pfoot button{width:100%;background:#1c2130;border:1px solid var(--line);color:var(--ink);
+border-radius:9px;padding:7px 0;font-size:12px;cursor:pointer}
+@media (max-width:640px){ #param{width:calc(100vw - 24px);right:12px} }
+
+#brain{position:fixed;right:14px;top:56px;width:308px;background:var(--panel);border:1px solid var(--line);
+border-radius:14px;padding:10px;display:none;z-index:12;box-shadow:0 18px 48px rgba(0,0,0,.5);
+max-height:calc(100vh - 92px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#brain::-webkit-scrollbar{width:4px}
+#brain::-webkit-scrollbar-thumb{background:#2c3342;border-radius:2px}
+#brain.on{display:block}
+#brain .hd{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;font-size:12px}
+#brain .hd b{font-size:12.5px}
+#brain .hd span{flex:1;color:var(--sub);font-size:10.5px}
+#brain .hd button{background:#1c2130;border:1px solid var(--line);color:var(--ink);
+border-radius:8px;padding:2px 8px;font-size:11.5px;cursor:pointer}
+#spikeBox{margin-top:8px;border-top:1px solid var(--line);padding-top:7px}
+.spk-row{display:flex;align-items:center;gap:6px;margin:4px 0}
+.spk-lb{width:52px;font-size:10px;color:var(--sub);flex:none}
+.spk-cv{flex:1;height:12px;display:block;background:#0b0d13;border-radius:4px}
+#brainCv{display:block;width:100%;height:190px;background:#0b0d13;border-radius:10px;border:1px solid var(--line)}
+.bgroup{font-size:10.5px;color:#8891a6;letter-spacing:.05em;margin:9px 0 2px;
+border-bottom:1px solid #252a38;padding-bottom:2px}
+.brow{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);line-height:19px}
+.brow b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+@media (max-width:640px){
+  /* 左上统计栏：默认只留一行，点开才展开 */
+  .stats{padding:7px 10px;font-size:11px;background:rgba(16,18,25,.88);backdrop-filter:blur(6px);max-height:60vh;overflow:auto}
+  .stats.open{max-height:62vh;overflow:auto;background:rgba(16,18,25,.96)}
+  .stats .more{display:block;font-size:10px;color:#8891a6;margin-top:2px}
+  .stats::after{content:'';}
+  /* 所有浮层面板：手机一律从底部弹出，不再压地图右上 */
+  #brain,#param,#chart,#chart2,#legend{
+    position:fixed;left:12px;right:12px;top:auto;bottom:126px;width:auto;
+    max-height:52vh;overflow:auto;z-index:16;
+  }
+  /* 两张曲线表上下排开，别叠在一起 */
+  #chart2{max-height:29vh;bottom:126px}
+  #chart{max-height:29vh;bottom:calc(126px + 31vh)}
+  #brain{right:12px}
+  /* 工具条更紧凑 */
+  .tools{gap:5px}
+  .tools button{padding:6px 9px;font-size:11.5px}
+}
+@media (min-width:641px){ .stats .more{display:none} }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div class="top">
+  <b>🗺 大世界 · 2D</b>
+  <button id="btnPause">⏸</button>
+  <button id="btnReset">↺</button>
+</div>
+
+<div id="chart">
+  <div class="ch-hd">📈 种群曲线<span>最近 5 分钟</span></div>
+  <canvas id="chartCv" width="300" height="132"></canvas>
+  <div class="ch-leg">
+    <span><i style="background:#7c8cff"></i>果蝇</span>
+    <span><i style="background:#c0504d"></i>蜘蛛</span>
+    <span><i style="background:#e9e3d0"></i>果蝇卵</span>
+    <span><i style="background:#b06a6a"></i>蜘蛛卵</span>
+    <span><i style="background:#e8a33d"></i>食物</span>
+  </div>
+</div>
+
+<div id="chart2">
+  <div class="ch-hd">⚡ 平均能量曲线<span>最近 5 分钟</span></div>
+  <canvas id="chartCv2" width="300" height="132"></canvas>
+  <div class="ch-leg">
+    <span><i style="background:#9aa8ff"></i>果蝇平均能量</span>
+    <span><i style="background:#ff9b9b"></i>蜘蛛平均能量</span>
+    <span style="opacity:.6">满值 175</span>
+  </div>
+</div>
+
+<div class="stats" id="statsBox">
+  <div class="st-hd"><span>📊 数据</span><button id="stToggle">▾</button></div>
+  <div class="st-body" id="stBody">
+    <div class="row"><i>果蝇</i><b id="n-fly">0</b><i>卵</i><b id="n-egg">0</b></div>
+    <div class="row"><i>蜘蛛</i><b id="n-pred2">0</b><i>卵</i><b id="n-eggp">0</b></div>
+    <div class="row"><i>食物</i><b id="n-food">0</b></div>
+    <div class="row"><i>青蛙</i><b id="n-frog">0</b><i>捕蝇草</i><b id="n-trap">0</b></div>
+
+    <div class="grp">平均能量</div>
+    <div class="sub">果蝇 <b id="avg-e">0</b>　蜘蛛 <b id="avg-p">0</b></div>
+
+    <div class="grp">最高代</div>
+    <div class="sub">果蝇 <b id="gen">1</b>　蜘蛛 <b id="gen-p">1</b></div>
+
+    <div class="grp">交配</div>
+    <div class="sub">果蝇 <b id="mate-f">0</b>　蜘蛛 <b id="mate-p">0</b></div>
+
+    <div class="grp">被捕食果蝇</div>
+    <div class="sub">蜘蛛 <b id="eat-p">0</b>　青蛙 <b id="eat-f">0</b>　捕蝇草 <b id="eat-t">0</b></div>
+  </div>
+</div>
+  <span class="more">点这里展开/收起 ▾</span>
+</div>
+
+<div id="param">
+  <div class="hd"><b>⚙︎ 个性化设置</b><span></span><button id="pClose">✕</button></div>
+  <div class="pg">生态</div>
+  <div class="prow"><span>低密度优先交配</span>
+    <input type="checkbox" id="q-lowfind" checked style="width:auto">
+    <b id="v-lowfind" style="width:52px">开</b>
+  </div>
+  <div class="prow"><span>果蝇阈值</span><input type="range" id="q-lowfly" min="2" max="30" step="1" value="12"><b id="v-lowfly">12</b></div>
+  <div class="prow"><span>蜘蛛阈值</span><input type="range" id="q-lowpred" min="1" max="10" step="1" value="3"><b id="v-lowpred">3</b></div>
+
+  <div class="prow"><span>青蛙</span>
+    <input type="checkbox" id="q-frogon" checked style="width:auto">
+    <b id="v-frogon" style="width:52px">开</b>
+  </div>
+  <div class="prow"><span>青蛙数量</span><input type="range" id="q-frogn" min="0" max="8" step="1" value="4"><b id="v-frogn">4</b></div>
+  <div class="prow"><span>弹舌距离</span><input type="range" id="q-frogreach" min="0.02" max="0.12" step="0.005" value="0.05"><b id="v-frogreach">0.050</b></div>
+  <div class="prow"><span>狩猎性植物</span>
+    <input type="checkbox" id="q-venuson" style="width:auto" checked>
+    <b id="v-venuson" style="width:52px">关</b>
+  </div>
+  <div class="prow"><span>捕蝇草数量</span><input type="range" id="q-venusn" min="0" max="16" step="1" value="6"><b id="v-venusn">6</b></div>
+
+
+  <div class="pg">环境</div>
+  <div class="prow"><span>温度 ℃</span><input type="range" id="q-temp" min="15" max="32" step="0.5" value="25"><b id="v-temp">25</b></div>
+  <div class="prow"><span>果蝇每窝卵</span><input type="range" id="q-fclutch" min="1" max="10" step="1" value="6"><b id="v-fclutch">6</b></div>
+  <div class="prow"><span>食物斑块化</span><input type="range" id="q-patchy" min="0" max="1" step="0.05" value="0.7"><b id="v-patchy">0.70</b></div>
+
+  <div class="pg">能量 / 代谢</div>
+  <div class="prow"><span>基础代谢</span><input type="range" id="q-met" min="0.5" max="6" step="0.1" value="2.2"><b id="v-met">2.2</b></div>
+  <div class="prow"><span>饥饿阈值</span><input type="range" id="q-hung" min="20" max="120" step="1" value="55"><b id="v-hung">55</b></div>
+  <div class="prow"><span>进食速率</span><input type="range" id="q-eat" min="5" max="40" step="1" value="18"><b id="v-eat">18</b></div>
+  <div class="prow"><span>食物能量</span><input type="range" id="q-fen" min="400" max="3000" step="100" value="1200"><b id="v-fen">1200</b></div>
+
+  <div class="pg">繁殖 / 寿命</div>
+  <div class="prow"><span>繁殖能量门槛</span><input type="range" id="q-breed" min="60" max="170" step="5" value="75"><b id="v-breed">75</b></div>
+  <div class="prow"><span>孵化时间</span><input type="range" id="q-egg" min="3" max="90" step="1" value="11"><b id="v-egg">11</b></div>
+  <div class="prow"><span>寿命</span><input type="range" id="q-life" min="60" max="800" step="10" value="230"><b id="v-life">220</b></div>
+  <div class="prow"><span>交配冷却</span><input type="range" id="q-mate" min="4" max="60" step="1" value="14"><b id="v-mate">14</b></div>
+
+  <div class="pg">天敌</div>
+  <div class="prow"><span>蜘蛛速度</span><input type="range" id="q-psp" min="0.005" max="0.06" step="0.002" value="0.030"><b id="v-psp">0.030</b></div>
+  <div class="prow"><span>饱腹时长 /s</span><input type="range" id="q-satiety" min="0" max="120" step="5" value="45"><b id="v-satiety">45</b></div>
+  <div class="prow"><span>捕食概率 /s</span><input type="range" id="q-pcatch" min="0.3" max="6" step="0.1" value="1.1"><b id="v-pcatch">1.1</b></div>
+  <div class="prow"><span>学习率</span><input type="range" id="q-learn" min="0.05" max="1.2" step="0.05" value="0.35"><b id="v-learn">0.35</b></div>
+  <div class="prow"><span>遗忘率 /s</span><input type="range" id="q-forget" min="0" max="0.03" step="0.001" value="0.010"><b id="v-forget">0.010</b></div>
+
+  <div class="pg">蜘蛛繁衍</div>
+  <div class="prow"><span>繁殖能量门槛</span><input type="range" id="q-pbreed" min="60" max="160" step="5" value="135"><b id="v-pbreed">135</b></div>
+  <div class="prow"><span>蜘蛛卵孵化</span><input type="range" id="q-pegg" min="5" max="160" step="1" value="16"><b id="v-pegg">16</b></div>
+  <div class="prow"><span>蜘蛛寿命</span><input type="range" id="q-plife" min="60" max="2400" step="10" value="260"><b id="v-plife">260</b></div>
+  <div class="prow"><span>初始蜘蛛</span><input type="range" id="q-pinit" min="0" max="20" step="1" value="8"><b id="v-pinit">8</b></div>
+  <div class="prow"><span>相遇半径</span><input type="range" id="q-mater" min="0.04" max="0.45" step="0.01" value="0.16"><b id="v-mater">0.16</b></div>
+  <div class="prow"><span>每窝数量</span><input type="range" id="q-pclutch" min="1" max="6" step="1" value="3"><b id="v-pclutch">3</b></div>
+  <div class="prow"><span>产卵冷却</span><input type="range" id="q-pmatecd" min="6" max="900" step="1" value="45"><b id="v-pmatecd">45</b></div>
+  <div class="prow"><span>蜘蛛软容量</span><input type="range" id="q-psoftcap" min="2" max="40" step="1" value="6"><b id="v-psoftcap">6</b></div>
+  <div class="prow"><span>蜘蛛安全阀</span><input type="range" id="q-pmax" min="10" max="80" step="2" value="60"><b id="v-pmax">60</b></div>
+
+  <div class="pg">种群</div>
+  <div class="prow"><span>初始数量</span><input type="range" id="q-init" min="4" max="40" step="1" value="16"><b id="v-init">16</b></div>
+  <div class="prow"><span>果蝇软容量</span><input type="range" id="q-softcap" min="10" max="120" step="2" value="32"><b id="v-softcap">32</b></div>
+  <div class="prow"><span>保种阈值（低于就放开繁殖）</span><input type="range" id="q-lowkeep" min="10" max="80" step="2" value="40"><b id="v-lowkeep">40</b></div>
+  <div class="prow"><span>食物供给系数</span><input type="range" id="q-foodk" min="0.2" max="1.2" step="0.05" value="0.55"><b id="v-foodk">0.55</b></div>
+  <div class="prow"><span>数量安全阀</span><input type="range" id="q-max" min="100" max="600" step="50" value="400"><b id="v-max">400</b></div>
+  <div class="pfoot"><button id="pReset">↺ 恢复默认</button></div>
+</div>
+
+<div id="brain">
+  <div class="hd"><b id="bTitle">🪰 果蝇档案</b><span id="bInfo">点一只果蝇</span><button id="bClose">✕</button></div>
+
+  <div class="bgroup">基础</div>
+  <div class="brow"><span>编号 / 代数</span><b id="o-id">—</b></div>
+  <div class="brow"><span>状态</span><b id="o-state">—</b></div>
+  <div class="brow"><span>能量</span><b id="o-energy">—</b></div>
+  <div class="brow"><span>年龄 / 已活</span><b id="o-age">—</b></div>
+  <div class="brow"><span>剩余寿命</span><b id="o-life">—</b></div>
+  <div class="brow predonly"><span>捕食次数</span><b id="o-kill">—</b></div>
+
+  <div class="bgroup">学习</div>
+  <div class="brow predonly"><span>追猎 / 伏击 / 回避 强度</span><b id="o-sp-hunt">—</b></div>
+  <div class="brow predonly"><span>步足 / 张口 放电</span><b id="o-sp-mn">—</b></div>
+  <div class="brow predonly"><span>最近猎物 / 视野</span><b id="o-sp-prey">—</b></div>
+  <div class="brow predonly"><span>产卵冷却 / 已产卵</span><b id="o-sp-lay">—</b></div>
+  <div class="brow frogonly"><span>弹舌 / 静伏 / 警戒 放电</span><b id="o-fr-1">—</b></div>
+  <div class="brow frogonly"><span>舌头 / 跳跃 放电</span><b id="o-fr-2">—</b></div>
+  <div class="brow frogonly"><span>最近猎物 / 视野</span><b id="o-fr-3">—</b></div>
+  <div class="brow frogonly"><span>弹舌捕食次数</span><b id="o-fr-4">—</b></div>
+  <div class="brow frogonly"><span>位置 x / y</span><b id="o-fr-pos">—</b></div>
+  <div class="brow frogonly"><span>所在环境</span><b id="o-fr-where">—</b></div>
+  <div class="brow flyonly"><span>厌恶性权重</span><b id="o-av">—</b></div>
+  <div class="brow flyonly"><span>躲避半径</span><b id="o-radius">—</b></div>
+  <div class="brow flyonly"><span>最近威胁 / 最近食物</span><b id="o-dist">—</b></div>
+  <div class="brow flyonly"><span>被追过 / 累计逃跑</span><b id="o-chase">—</b></div>
+  <div class="brow flyonly"><span>学习 / 遗忘速度</span><b id="o-learn">—</b></div>
+  <div class="spk-row flyonly" style="align-items:flex-start;margin:5px 0 0">
+    <span class="spk-lb" style="line-height:1.5">厌恶性<br>曲线</span>
+    <canvas class="spk-cv" id="avCv" width="240" height="44" style="height:44px"></canvas>
+  </div>
+
+  <div class="bgroup">脑活动</div>
+  <div class="brow"><span>感觉 / 中枢 / 运动 放电率</span><b id="o-rate">—</b></div>
+  <div class="brow"><span>放电 峰值 / 平均</span><b id="o-peak">—</b></div>
+  <div class="brow"><span>放电趋势</span><b id="o-trend">—</b></div>
+  <div class="brow flyonly"><span>MN_walk / MN_feed</span><b id="o-mn">—</b></div>
+  <div class="brow flyonly"><span>感觉 / 驱动强度</span><b id="o-drive">—</b></div>
+  <div id="spikeBox">
+    <div class="spk-row"><span class="spk-lb">感觉输入</span><canvas class="spk-cv" id="spk-s" width="240" height="12"></canvas></div>
+    <div class="spk-row"><span class="spk-lb">中枢</span><canvas class="spk-cv" id="spk-c" width="240" height="12"></canvas></div>
+    <div class="spk-row"><span class="spk-lb">运动输出</span><canvas class="spk-cv" id="spk-m" width="240" height="12"></canvas></div>
+  </div>
+</div>
+
+<div class="legend" id="legend">
+  <div><i class="d" style="background:#7c8cff"></i>果蝇·巡游/觅食</div>
+  <div><i class="d" style="background:#8ee07a"></i>果蝇·进食</div>
+  <div><i class="d" style="background:#22d3ee"></i>果蝇·求偶</div>
+  <div><i class="d" style="background:#c084fc"></i>果蝇·交配</div>
+  <div><i class="d" style="background:#f87171"></i>果蝇·逃跑</div>
+  <div><i class="d d-pred">✕</i>蜘蛛（带编号 P1…）</div>
+  <div><i class="d" style="background:#e8a33d"></i>食物</div>
+  <div><i class="d d-egg"></i>果蝇卵</div>
+  <div><i class="d d-eggs"></i>蜘蛛卵</div>
+  <div class="leg-frog" style="display:none"><canvas class="leg-icon" id="legFrogCv" width="20" height="20"></canvas>青蛙（F）</div>
+  <div class="leg-trap" style="display:none"><canvas class="leg-icon" id="legTrapCv" width="20" height="20"></canvas>捕蝇草</div>
+  <div><i class="d d-sel"></i>已选中</div>
+</div>
+
+<div id="dbgBox" style="position:fixed;left:14px;bottom:14px;background:rgba(16,18,25,.95);
+border:1px solid #252a38;border-radius:10px;padding:6px 9px;font-size:10.5px;color:#9aa4b8;
+display:none;z-index:20;line-height:1.6;font-variant-numeric:tabular-nums"></div>
+
+<div class="tools">
+  <button id="tFood">🍎 撒食物</button>
+  <button id="tFly">🪰 放果蝇</button>
+  <button id="tPred">🕷 放蜘蛛</button>
+  <button id="tClear">🧽 清蜘蛛</button>
+  <button id="tLegend">📖 图例</button>
+  <button id="tChart">📈 曲线</button>
+  <button id="tParam">⚙︎ 参数</button>
+  <button id="tSpeed">⏩ 加速</button>
+</div>
+
+<script src="../flybrain-net.js?v=1"></script>
+<script>
+(function(){
+var $=function(q){return document.querySelector(q);};
+var cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+var DPR=Math.min(devicePixelRatio||1, (innerWidth<700?1.5:2));
+function resize(){
+  cv.width=innerWidth*DPR; cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+resize(); addEventListener('resize',resize);
+
+/* ---------------- 地形 ---------------- */
+var N=160, WORLD=120, WATER=0.32;
+var seed=Math.random()*1000;
+function rnd2(x,y,s){ var v=Math.sin(x*12.9898+y*78.233+s*43.123)*43758.5453; return v-Math.floor(v); }
+function smooth(t){ return t*t*(3-2*t); }
+function noise2(x,y){
+  var xi=Math.floor(x), yi=Math.floor(y), xf=x-xi, yf=y-yi;
+  var a=rnd2(xi,yi,seed), b=rnd2(xi+1,yi,seed), c=rnd2(xi,yi+1,seed), d=rnd2(xi+1,yi+1,seed);
+  var u=smooth(xf), v=smooth(yf);
+  return (a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v;
+}
+function fbm(x,y){
+  return 0.55*noise2(x*2.2,y*2.2)+0.28*noise2(x*5.1,y*5.1)+0.17*noise2(x*11,y*11);
+}
+var H=new Float32Array((N+1)*(N+1));
+var RS=Math.random()*6;
+function genTerrain(){
+  seed=Math.random()*1000; RS=Math.random()*6;
+  for(var j=0;j<=N;j++){
+    for(var i=0;i<=N;i++){
+      var x=i/N, y=j/N;
+      var h=fbm(x,y);
+      // 山脊
+      h += 0.30*Math.exp(-(((x-0.3)*(x-0.3)+(y-0.35)*(y-0.35))/0.03));
+      h += 0.24*Math.exp(-(((x-0.72)*(x-0.72)+(y-0.68)*(y-0.68))/0.025));
+      // 河道（正弦低地）
+      var ry=0.5+0.16*Math.sin(x*5.2+RS);
+      h -= 0.28*Math.exp(-(((y-ry)*(y-ry))/0.0022));
+      H[j*(N+1)+i]=Math.max(0,Math.min(1,h));
+    }
+  }
+  ensureWaterArea(0.12);      // 保证至少 12% 是水，青蛙才有地方待
+  paintTerrain();
+}
+function waterPct(){
+  var c=0, t=0;
+  for(var gy=0; gy<=1; gy+=0.02) for(var gx=0; gx<=1; gx+=0.02){
+    t++; if(hAt(gx,gy) < WATER) c++;
+  }
+  return c/Math.max(1,t);
+}
+function ensureWaterArea(target){
+  target = target || 0.12;
+  for(var pass=0; pass<3; pass++){
+    var p = waterPct();
+    if(p >= target) break;
+    // 找"第 target 分位"的高度，把低于 0.62 的地形往下压
+    var vals=[];
+    for(var k=0;k<H.length;k+=9) vals.push(H[k]);
+    vals.sort(function(a,b){return a-b;});
+    var hStar = vals[Math.min(vals.length-1, Math.floor(vals.length*target))];
+    var need = (hStar - WATER) * 1.25;
+    if(need <= 0.0005) break;
+    for(var k2=0;k2<H.length;k2++){
+      var h2=H[k2];
+      if(h2 < 0.62) H[k2]=Math.max(0, h2 - need*(1-h2/0.62));
+    }
+  }
+  return waterPct();
+}
+function hAt(u,v){         // u,v ∈ [0,1]
+  var x=Math.max(0,Math.min(1,u))*N, y=Math.max(0,Math.min(1,v))*N;
+  var i=Math.floor(x), j=Math.floor(y);
+  var i1=Math.min(N,i+1), j1=Math.min(N,j+1);
+  var fx=x-i, fy=y-j;
+  var a=H[j*(N+1)+i], b=H[j*(N+1)+i1], c=H[j1*(N+1)+i], d=H[j1*(N+1)+i1];
+  return (a*(1-fx)+b*fx)*(1-fy)+(c*(1-fx)+d*fx)*fy;
+}
+/* 离屏地形图 */
+var terCv=document.createElement('canvas'), terCtx=terCv.getContext('2d');
+var TW=900, TH=900;
+terCv.width=TW; terCv.height=TH;
+function colorFor(h){
+  if(h<WATER) return [42,86,120];             // 水
+  if(h<WATER+0.03) return [190,176,132];      // 滩
+  if(h<0.5) return [96,140,86];               // 草
+  if(h<0.68) return [74,116,70];              // 草坡
+  if(h<0.82) return [60,92,60];               // 林
+  if(h<0.92) return [120,116,108];            // 岩
+  return [196,196,200];                        // 峰
+}
+function paintTerrain(){
+  var img=terCtx.createImageData(TW,TH);
+  var d=img.data;
+  for(var py=0;py<TH;py++){
+    var v=py/TH;
+    for(var px=0;px<TW;px++){
+      var u=px/TW;
+      var h=hAt(u,v);
+      var c=colorFor(h);
+      var o=(py*TW+px)*4;
+      d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; d[o+3]=255;
+    }
+  }
+  terCtx.putImageData(img,0,0);
+  setTimeout(paintContours, 30);      // 等高线异步画，不堵主线程
+}
+function paintContours(){
+  var STEPS=[0.10,0.20,0.30,0.35,0.42,0.50,0.58,0.66,0.74,0.82,0.90];
+  var li=0;
+  terCtx.strokeStyle='rgba(20,26,34,.26)';
+  terCtx.lineWidth=1;
+  function layer(){
+    if(li>=STEPS.length){ terKey=''; return; }   // 画完通知屏幕缓存重绘
+    var th=STEPS[li++];
+    terCtx.beginPath();
+    for(var j=0;j<N;j++){
+      for(var i=0;i<N;i++){
+        var h00=H[j*(N+1)+i], h10=H[j*(N+1)+i+1], h01=H[(j+1)*(N+1)+i], h11=H[(j+1)*(N+1)+i+1];
+        var a=(h00>th?1:0)|(h10>th?2:0)|(h11>th?4:0)|(h01>th?8:0);
+        if(a===0||a===15) continue;
+        var x0=i/N*TW, y0=j/N*TH, x1=(i+1)/N*TW, y1=(j+1)/N*TH;
+        var mx=(x0+x1)/2, my=(y0+y1)/2;
+        if(a===5||a===10){
+          terCtx.moveTo(x0,my); terCtx.lineTo(x1,my);
+          terCtx.moveTo(mx,y0); terCtx.lineTo(mx,y1);
+        }else{
+          var pick=[];
+          var segs=[[x0,y0,x1,y0],[x1,y0,x1,y1],[x1,y1,x0,y1],[x0,y1,x0,y0]];
+          for(var e=0;e<4;e++){
+            var c1=(a>>e)&1, c2=(a>>((e+1)%4))&1;
+            if(c1!==c2){
+              var s0=segs[e], s1=segs[(e+1)%4];
+              pick.push([(s0[0]+s0[2]+s1[0]+s1[2])/4, (s0[1]+s0[3]+s1[1]+s1[3])/4]);
+            }
+          }
+          if(pick.length>=2){ terCtx.moveTo(pick[0][0],pick[0][1]); terCtx.lineTo(pick[1][0],pick[1][1]); }
+        }
+      }
+    }
+    terCtx.stroke();
+    terKey='';                     // 每层都刷新一次屏幕缓存
+    setTimeout(layer, 0);          // 每层单独一帧，不堵主线程
+  }
+  layer();
+}
+
+/* ---------------- 坐标映射 ---------------- */
+var view={x:0.5,y:0.5,zoom:1};      // 中心（0~1），zoom（手机也保持 1，方形地图居中）
+function toScreen(u,v){
+  var w=innerWidth, h=innerHeight;
+  var scale=Math.min(w,h)*0.92*view.zoom;
+  return [w/2+(u-view.x)*scale, h/2+(v-view.y)*scale, scale];
+}
+function fromScreen(sx,sy){
+  var w=innerWidth, h=innerHeight, scale=Math.min(w,h)*0.92*view.zoom;
+  return [(sx-w/2)/scale+view.x, (sy-h/2)/scale+view.y];
+}
+
+/* ---------------- 物件 ---------------- */
+var flies=[], foods=[], preds=[], eggs=[], frogs=[], traps=[], patchC=[], hatched=0, idSeq=1, pidSeq=1, fidSeq=1, gen=1, predGen=1, spiderKills=0, eaten=0, mates=0, matesP=0, paused=false, selected=null, selPred=null, selFrog=null;
+
+/* ============================================================
+   蜘蛛简化神经环（方案②：按功能回路合成，24 个神经元）
+   蜘蛛没有公开的全脑连接组，因此按"感觉→决策→运动"三段
+   手工搭一个最小可用环；极性/权重为工程设定（非实测数据）。
+   感觉 8：视觉3 / 网振动2 / 气味1 / 接触2
+   决策10：追猎3 / 伏击2 / 回避2 / 饥饿1 / 警戒2
+   运动 6：步足3 / 螯肢(张口)2 / 转向1
+   模型：与果蝇同一套 LIF（τm=20ms τsyn=5ms 不应期 2ms）
+   ============================================================ */
+var SP_COL=[];
+(function(){
+  for(var i=0;i<8;i++)  SP_COL.push('Sensory');
+  for(var j=0;j<10;j++) SP_COL.push('Central');
+  for(var k=0;k<6;k++)  SP_COL.push('Motor');
+})();
+var SP={ visual:[0,1,2], vib:[3,4], odor:[5], touch:[6,7],
+         hunt:[8,9,10], ambush:[11,12], avoid:[13,14], hunger:[15], alert:[16,17],
+         walk:[18,19,20], strike:[21,22], turn:[23] };
+var SP_EDGES=[
+  [0,8,1.6,1],[1,8,1.5,1],[2,9,1.2,1],
+  [3,9,1.4,1],[4,10,1.1,1],
+  [5,11,1.8,1],[6,11,1.2,1],
+  [7,13,2.0,1],[6,13,1.4,1],
+  [0,16,1.5,1],[4,16,2.2,1],
+  [5,17,1.3,1],
+  [8,9,1.4,1],[9,10,1.3,1],
+  [15,8,2.2,1],[15,11,-1.2,1],
+  [16,13,1.8,1],[17,11,1.5,1],
+  [13,8,-1.8,1],[14,9,-1.4,1],
+  [11,12,1.2,1],[12,9,1.0,1],
+  [8,18,2.0,1],[9,19,1.8,1],[10,20,1.6,1],
+  [11,18,0.8,1],[12,23,1.5,1],
+  [13,23,2.0,1],[14,18,1.6,1],
+  [8,21,1.6,1],[10,22,1.8,1],[9,22,1.4,1],
+  [16,19,1.2,1],[17,18,1.0,1],
+  [18,19,0.6,1],[19,20,0.6,1],[21,22,0.8,1]
+];
+function newSpiderBrain(){
+  var n=24;
+  return {n:n, v:new Float32Array(n), I:new Float32Array(n), ext:new Float32Array(n),
+          r:new Float32Array(n), refr:new Float32Array(n), a:new Float32Array(n)};
+}
+function spRate(br, list){
+  var t=0; for(var i=0;i<list.length;i++) t+=br.r[list[i]];
+  return t/list.length;
+}
+function spStep(br, dt){
+  var tauM=0.020, tauSyn=0.005, tauR=0.26, tauAdapt=0.10,
+      vThr=1.0, vRefrac=0.002, adapt=0.18, noise=0.02;
+  var n=br.n, decI=Math.exp(-dt/tauSyn), decR=Math.exp(-dt/tauR), decA=Math.exp(-dt/tauAdapt);
+  for(var i=0;i<n;i++){ br.I[i]*=decI; br.r[i]*=decR; br.a[i]*=decA; }
+  var kicks=noise*n*dt*3, k=Math.floor(kicks)+(Math.random()<(kicks%1)?1:0);
+  while(k-->0) br.I[(Math.random()*n)|0]+=1.2;
+  var dtM=dt/tauM, rGain=1/tauR;
+  for(var j=0;j<n;j++){
+    if(br.refr[j]>0){ br.refr[j]-=dt; br.v[j]=0; continue; }
+    var vj=br.v[j]+dtM*(-br.v[j]+br.I[j]+br.ext[j]-br.a[j]);
+    if(vj>=vThr){
+      br.v[j]=0; br.refr[j]=vRefrac; br.a[j]+=adapt;
+      br.r[j]+=rGain;
+      for(var e=0;e<SP_EDGES.length;e++){
+        if(SP_EDGES[e][0]===j) br.I[SP_EDGES[e][1]] += SP_EDGES[e][2]*SP_EDGES[e][3]*0.62;
+      }
+    } else br.v[j]=vj;
+  }
+}
+function feedSpiderInputs(p){
+  var br=p.br; if(!br) return;
+  for(var i=0;i<br.n;i++) br.ext[i]=0;
+  var nd=9e9;
+  for(var fi=0;fi<flies.length;fi++){
+    var d=Math.hypot(flies[fi].u-p.u, flies[fi].v-p.v);
+    if(d<nd) nd=d;
+  }
+  var vis=Math.max(0,1-nd/0.30), vib=Math.max(0,1-nd/0.12), touch=nd<0.022?1:0;
+  var hunger=1-Math.min(1,p.energy/160);
+  function add(list,val){ for(var q=0;q<list.length;q++) br.ext[list[q]]+=val; }
+  add(SP.visual, vis*3.2);
+  add(SP.vib,    vib*4.0);
+  add(SP.odor,   vis*2.0);
+  add(SP.touch,  touch*5.0);
+  add(SP.hunger, hunger*2.8+0.6);
+  p.seePrey=vis;
+}
+function readSpiderOut(p){
+  var br=p.br; if(!br) return;
+  p.spWalk  = spRate(br, SP.walk);
+  p.spStrike= spRate(br, SP.strike);
+  p.spHunt  = spRate(br, SP.hunt);
+  p.spAvoid = spRate(br, SP.avoid);
+  p.spAmbush= spRate(br, SP.ambush);
+}
+function sampleSpiderStrip(p, dt){
+  var br=p.br; if(!br) return;
+  p.spAcc=(p.spAcc||0)+dt;
+  if(p.spAcc<0.1) return;
+  p.spAcc-=0.1;
+  var sS=0,nS=0,sC=0,nC=0,sM=0,nM=0;
+  for(var i=0;i<br.n;i++){
+    var c=SP_COL[i], rv=Math.min(1, br.r[i]/(c==='Sensory'?32:(c==='Motor'?42:48)));
+    if(c==='Sensory'){ sS+=rv; nS++; }
+    else if(c==='Motor'){ sM+=rv; nM++; }
+    else { sC+=rv; nC++; }
+  }
+  if(!p.spHist) p.spHist={s:[],c:[],m:[]};
+  p.spHist.s.push(nS?sS/nS:0);
+  p.spHist.c.push(nC?sC/nC:0);
+  p.spHist.m.push(nM?sM/nM:0);
+  if(p.spHist.s.length>48){ p.spHist.s.shift(); p.spHist.c.shift(); p.spHist.m.shift(); }
+}
+
+/* ============ 青蛙简化神经环（20 神经元，工程合成） ============
+   感觉 6：运动视觉3 / 水波振动1 / 明暗1 / 温度1
+   决策 8：弹舌2 / 静伏3 / 警戒2 / 回避1
+   运动 6：舌头3 / 跳跃2 / 转身1
+   模型：与果蝇/蜘蛛同一套 LIF 参数
+   ============================================================ */
+var FR_COL=[];
+(function(){ for(var i=0;i<6;i++) FR_COL.push('Sensory');
+           for(var j=0;j<8;j++) FR_COL.push('Central');
+           for(var k=0;k<6;k++) FR_COL.push('Motor'); })();
+var FR={ move:[0,1,2], vib:[3], light:[4], temp:[5],
+         tongue:[6,7], still:[8,9,10], alert:[11,12], avoid:[13],
+         tMotor:[14,15,16], jump:[17,18], turn:[19] };
+var FR_EDGES=[
+  [0,6,1.8,1],[1,6,1.7,1],[2,7,1.5,1],
+  [3,11,2.2,1],[3,13,1.6,1],
+  [4,8,1.2,1],[5,9,1.0,1],
+  [6,14,2.0,1],[7,15,1.8,1],[7,16,1.6,1],
+  [8,17,-1.2,1],[9,18,-1.0,1],
+  [11,19,1.8,1],[12,17,1.5,1],
+  [13,17,2.0,1],[13,8,-1.5,1],
+  [6,17,1.2,1],[11,14,1.1,1],
+  [14,15,0.6,1],[15,16,0.6,1]
+];
+function newFrogBrain(){
+  var n=20;
+  return {n:n, v:new Float32Array(n), I:new Float32Array(n), ext:new Float32Array(n),
+          r:new Float32Array(n), refr:new Float32Array(n), a:new Float32Array(n)};
+}
+function frRate(br, list){
+  var t=0; for(var i=0;i<list.length;i++) t+=br.r[list[i]];
+  return t/list.length;
+}
+function frStep(br, dt){
+  var tauM=0.020, tauSyn=0.005, tauR=0.26, tauAdapt=0.10,
+      vThr=1.0, vRefrac=0.002, adapt=0.18, noise=0.018;
+  var n=br.n, decI=Math.exp(-dt/tauSyn), decR=Math.exp(-dt/tauR), decA=Math.exp(-dt/tauAdapt);
+  for(var i=0;i<n;i++){ br.I[i]*=decI; br.r[i]*=decR; br.a[i]*=decA; }
+  var kicks=noise*n*dt*3, k=Math.floor(kicks)+(Math.random()<(kicks%1)?1:0);
+  while(k-->0) br.I[(Math.random()*n)|0]+=1.1;
+  var dtM=dt/tauM, rGain=1/tauR;
+  for(var j=0;j<n;j++){
+    if(br.refr[j]>0){ br.refr[j]-=dt; br.v[j]=0; continue; }
+    var vj=br.v[j]+dtM*(-br.v[j]+br.I[j]+br.ext[j]-br.a[j]);
+    if(vj>=vThr){
+      br.v[j]=0; br.refr[j]=vRefrac; br.a[j]+=adapt; br.r[j]+=rGain;
+      for(var e=0;e<FR_EDGES.length;e++){
+        if(FR_EDGES[e][0]===j) br.I[FR_EDGES[e][1]] += FR_EDGES[e][2]*FR_EDGES[e][3]*0.95;
+      }
+    } else br.v[j]=vj;
+  }
+}
+function feedFrogInputs(fr){
+  var br=fr.br; if(!br) return;
+  for(var i=0;i<br.n;i++) br.ext[i]=0;
+  var nd=9e9;
+  for(var fi=0;fi<flies.length;fi++){
+    var d=Math.hypot(flies[fi].u-fr.u, flies[fi].v-fr.v);
+    if(d<nd) nd=d;
+  }
+  var see=Math.max(0,1-nd/0.22), near=Math.max(0,1-nd/0.08);
+  function add(l,v){ for(var q=0;q<l.length;q++) br.ext[l[q]]+=v; }
+  add(FR.move, 1.6 + see*6.0);
+  add(FR.vib,  0.8 + near*6.5);
+  add(FR.light, 0.8);
+  add(FR.temp,  0.5);
+  fr.seePrey=see;
+}
+function readFrogOut(fr){
+  var br=fr.br; if(!br) return;
+  fr.fTongue = frRate(br, FR.tongue);
+  fr.fStill  = frRate(br, FR.still);
+  fr.fAlert  = frRate(br, FR.alert);
+  fr.fJump   = frRate(br, FR.jump);
+}
+
+var P={speed:0.030, met:1.4, hungry:55, eat:22, breedE:75, eggT:11, life:230,
+       predFear:0.5, learn:0.35, forget:0.010, mateCD:14,
+       foodE:1700, predSpeed:0.030, predChase:0.030, catchP:1.1, initN:16, maxPop:400, softCap:32, pInit:8,
+       pBreedE:135, pEggT:16, pLife:260, pMax:60, pSoftCap:6,
+       mateR:0.16, pMateCD:45, pClutch:3, satiety:45,
+       temp:25, fClutch:6, patchy:0.5,
+       lowFind:1, lowFly:12, lowPred:3, lowKeep:40,
+       foodBase:15, foodK:0.55,
+       frogOn:1, frogN:4, frogReach:0.05, frogCD:10,
+       venusOn:1, venusN:6, venusReach:0.022, venusCD:50};   // 低密度优先交配：开关/果蝇阈值/蜘蛛阈值   // 温度℃ / 果蝇每窝卵数 / 食物斑块化   // 620s ≈ 真实一年 3 窝；每窝 3 只（成活数）
+var P_DEF=JSON.parse(JSON.stringify(P));
+try{
+  if(localStorage.getItem('kwworldVer')!=='15'){
+    localStorage.removeItem('kwworld'); localStorage.setItem('kwworldVer','15');
+  }
+  var ps=JSON.parse(localStorage.getItem('kwworld')||'null');
+     if(ps) Object.keys(P).forEach(function(k){ if(typeof ps[k]==='number') P[k]=ps[k]; }); }catch(e){}
+function bindP(id,key,fmt){
+  var el=document.getElementById(id); if(!el) return;
+  el.oninput=function(){ P[key]=parseFloat(el.value);
+    var b=document.getElementById(id.replace('q-','v-')); if(b) b.textContent=fmt(P[key]);
+    applyLive(key); saveParams(); };
+  var b0=document.getElementById(id.replace('q-','v-')); if(b0) b0.textContent=fmt(P[key]);
+  el.value=P[key];
+}
+bindP('q-met','met',function(v){return v.toFixed(1);});
+bindP('q-hung','hungry',function(v){return v.toFixed(0);});
+bindP('q-eat','eat',function(v){return v.toFixed(0);});
+bindP('q-fen','foodE',function(v){return v.toFixed(0);});
+bindP('q-breed','breedE',function(v){return v.toFixed(0);});
+bindP('q-egg','eggT',function(v){return v.toFixed(0);});
+bindP('q-life','life',function(v){return v.toFixed(0);});
+bindP('q-mate','mateCD',function(v){return v.toFixed(0);});
+bindP('q-psp','predSpeed',function(v){return v.toFixed(3);});
+bindP('q-satiety','satiety',function(v){return v.toFixed(0);});
+bindP('q-pcatch','catchP',function(v){return v.toFixed(1);});
+bindP('q-learn','learn',function(v){return v.toFixed(2);});
+bindP('q-forget','forget',function(v){return v.toFixed(4);});
+bindP('q-init','initN',function(v){return v.toFixed(0);});
+bindP('q-pinit','pInit',function(v){return v.toFixed(0);});
+bindP('q-lowkeep','lowKeep',function(v){return v.toFixed(0);});
+bindP('q-foodk','foodK',function(v){return v.toFixed(2);});
+bindP('q-softcap','softCap',function(v){return v.toFixed(0);});
+bindP('q-psoftcap','pSoftCap',function(v){return v.toFixed(0);});
+bindP('q-max','maxPop',function(v){return v.toFixed(0);});
+bindP('q-pbreed','pBreedE',function(v){return v.toFixed(0);});
+bindP('q-pegg','pEggT',function(v){return v.toFixed(0);});
+bindP('q-plife','pLife',function(v){return v.toFixed(0);});
+var frEl=document.getElementById('q-frogon');
+if(frEl){
+  frEl.checked=!!P.frogOn;
+  document.getElementById('v-frogon').textContent=P.frogOn?'开':'关';
+  frEl.onchange=function(){
+    P.frogOn=this.checked?1:0;
+    document.getElementById('v-frogon').textContent=this.checked?'开':'关';
+    if(!this.checked){ frogs=[]; } else { for(var i=0;i<P.frogN;i++) addFrog(); }
+    try{ localStorage.setItem('kwworld', JSON.stringify(P)); }catch(e){}
+  };
+}
+var vnEl=document.getElementById('q-venuson');
+if(vnEl){
+  vnEl.checked=!!P.venusOn;
+  document.getElementById('v-venuson').textContent=P.venusOn?'开':'关';
+  vnEl.onchange=function(){
+    P.venusOn=this.checked?1:0;
+    document.getElementById('v-venuson').textContent=this.checked?'开':'关';
+    if(!this.checked){ traps=[]; } else { for(var i=0;i<P.venusN;i++) addTrap(); }
+    try{ localStorage.setItem('kwworld', JSON.stringify(P)); }catch(e){}
+  };
+}
+bindP('q-frogn','frogN',function(v){return v.toFixed(0);});
+bindP('q-frogreach','frogReach',function(v){return v.toFixed(3);});
+bindP('q-venusn','venusN',function(v){return v.toFixed(0);});
+var lfEl=document.getElementById('q-lowfind');
+if(lfEl){
+  lfEl.checked = !!P.lowFind;
+  document.getElementById('v-lowfind').textContent = P.lowFind?'开':'关';
+  lfEl.onchange=function(){
+    P.lowFind = this.checked?1:0;
+    document.getElementById('v-lowfind').textContent = this.checked?'开':'关';
+    try{ localStorage.setItem('kwworld', JSON.stringify(P)); }catch(e){}
+  };
+}
+bindP('q-lowfly','lowFly',function(v){return v.toFixed(0);});
+bindP('q-lowpred','lowPred',function(v){return v.toFixed(0);});
+bindP('q-temp','temp',function(v){return v.toFixed(1);});
+bindP('q-fclutch','fClutch',function(v){return v.toFixed(0);});
+bindP('q-patchy','patchy',function(v){return v.toFixed(2);});
+bindP('q-mater','mateR',function(v){return v.toFixed(2);});
+bindP('q-pmatecd','pMateCD',function(v){return v.toFixed(0);});
+bindP('q-pclutch','pClutch',function(v){return v.toFixed(0);});
+bindP('q-pmax','pMax',function(v){return v.toFixed(0);});
+function tempMetK(){ return Math.pow(2, (P.temp-25)/10); }     // Q10=2：升 10℃ 代谢翻倍
+function tempLifeK(){ return Math.max(0.4, Math.min(2.4, 1+(25-P.temp)*0.05)); }  // 低温活得久
+function buildPatches(){
+  patchC=[];
+  var n=4+Math.floor(Math.random()*3);
+  for(var i=0;i<n;i++){
+    var sp=freeSpot();
+    patchC.push({u:sp.u, v:sp.v, r:0.10+Math.random()*0.09});
+  }
+}
+function foodSpot(){
+  var pk=Math.max(0,Math.min(1,P.patchy||0));
+  if(patchC.length && Math.random()<pk){
+    var c=patchC[Math.floor(Math.random()*patchC.length)];
+    var th=Math.random()*6.2832, rr=Math.sqrt(Math.random())*c.r;
+    var u=Math.max(0.04,Math.min(0.96,c.u+Math.cos(th)*rr));
+    var v=Math.max(0.04,Math.min(0.96,c.v+Math.sin(th)*rr));
+    if(hAt(u,v)>=WATER+0.03) return {u:u,v:v};
+  }
+  return freeSpot();
+}
+function freeSpot(minH,maxH){
+  for(var k=0;k<80;k++){
+    var u=0.06+Math.random()*0.88, v=0.06+Math.random()*0.88;
+    var h=hAt(u,v);
+    if(h>=(minH||WATER+0.03) && h<=(maxH||1)) return {u:u,v:v,h:h};
+  }
+  return {u:0.5,v:0.5,h:hAt(0.5,0.5)};
+}
+function addFood(){
+  var cap = Math.min(70, (P.foodBase||15) + Math.floor(flies.length*(P.foodK||0.55)));
+  if(foods.length>=cap) return;
+  var s=foodSpot();
+  foods.push({u:s.u,v:s.v,energy:P.foodE*(0.8+Math.random()*0.6)});
+}
+function addPred(u,v){
+  if(preds.length>=P.pMax) return;                 // 蜘蛛上限
+  var s = (u!==undefined && v!==undefined && hAt(u,v)>=WATER+0.03)
+            ? {u:u,v:v} : freeSpot();
+  // 出生点别贴着果蝇（避免开局就贴脸吃）
+  if(u===undefined){
+    for(var tries=0; tries<12; tries++){
+      var tooClose=false;
+      for(var fi0=0; fi0<flies.length; fi0++){
+        if(Math.hypot(flies[fi0].u-s.u, flies[fi0].v-s.v) < 0.12){ tooClose=true; break; }
+      }
+      if(!tooClose) break;
+      s=freeSpot();
+    }
+  }
+  preds.push({u:s.u,v:s.v,dir:Math.random()*6.28,sp:0.012,
+              energy:70+Math.random()*40, age:Math.random()*60,
+              lifeMax: P.pLife*(0.85+Math.random()*0.35), cd:8+Math.random()*8, mateLock:0,
+              id:pidSeq++, gen:(arguments[2]||1), kill:0,
+              br:newSpiderBrain(), spHist:null, spAcc:0,
+              spWalk:0, spStrike:0, spHunt:0, spAvoid:0, spAmbush:0, seePrey:0, satT:0, layCount:0});
+}
+function waterEdgeSpot(){
+  // ① 随机试（多数情况够用）
+  for(var i=0;i<300;i++){
+    var u=0.05+Math.random()*0.90, v=0.05+Math.random()*0.90;
+    var h=hAt(u,v);
+    if(h>=WATER+0.002 && h<=WATER+0.028) return {u:u,v:v};
+  }
+  // ② 网格扫描：把岸线上的点全收集起来随机抽一个（小水塘靠这个）
+  var cand=[], wetCand=[], best={u:0.5,v:0.5,h:2};
+  for(var gy=0.04; gy<=0.96; gy+=0.012){
+    for(var gx=0.04; gx<=0.96; gx+=0.012){
+      var hh=hAt(gx,gy);
+      if(hh<best.h) best={u:gx,v:gy,h:hh};
+      if(hh>=WATER+0.001 && hh<=WATER+0.035) cand.push([gx,gy]);
+      else if(hh<WATER) wetCand.push([gx,gy]);
+    }
+  }
+  if(cand.length){
+    var c=cand[(Math.random()*cand.length)|0];
+    return {u:c[0], v:c[1]};
+  }
+  // ③ 岸线太窄（水极少）→ 直接放水里
+  if(wetCand.length){
+    var w2=wetCand[(Math.random()*wetCand.length)|0];
+    return {u:w2[0], v:w2[1]};
+  }
+  // ④ 整张图没水 → 放最低处（洼地，青蛙至少不会站山顶）
+  return {u:best.u, v:best.v};
+}
+function isNearWater(u,v){
+  var h=hAt(u,v);
+  return h>=WATER-0.40 && h<=WATER+0.03;    // 水里 + 极窄岸线（不离水）
+}
+function addFrog(u,v){
+  if(frogs.length>=Math.min(8, P.frogN)) return;
+  var sp = (u!==undefined) ? {u:u,v:v} : waterEdgeSpot();
+  frogs.push({u:sp.u, v:sp.v, dir:Math.random()*6.28, cd:4+Math.random()*6,
+              tongueT:0, hops:0, gen:1, id:fidSeq++, br:newFrogBrain(),
+              fTongue:0, fStill:0, fAlert:0, fJump:0, seePrey:0, kills:0,
+              fHist:null, fAcc:0, tongueCD:0});
+}
+function addTrap(u,v){
+  var sp = (u!==undefined) ? {u:u,v:v} : freeSpot();
+  traps.push({u:sp.u, v:sp.v, cd:0, closedT:0, caught:0, id:'V'+(traps.length+1)});
+}
+function nearestLand(u,v){
+  if(hAt(u,v)>=WATER+0.03) return {u:u,v:v};
+  for(var r=0.012;r<0.25;r+=0.012){
+    for(var a=0;a<12;a++){
+      var th=a/12*6.2832;
+      var nu=u+Math.cos(th)*r, nv=v+Math.sin(th)*r;
+      if(nu<0.03||nu>0.97||nv<0.03||nv>0.97) continue;
+      if(hAt(nu,nv)>=WATER+0.035) return {u:nu,v:nv};
+    }
+  }
+  return null;
+}
+function addFly(u,v,g){
+  if(flies.length>=P.maxPop) return null;      // 数量上限，防止越跑越卡
+  var hs=[], hc=[], hm=[];
+  for(var z=0;z<48;z++){ hs.push(0); hc.push(0); hm.push(0); }
+  flies.push({id:idSeq++,u:u,v:v,dir:Math.random()*6.28,energy:70+Math.random()*45,
+    age:Math.random()*70,                            // 同龄化会一起老死，先错开
+    lifeMax: P.life*(0.70+Math.random()*0.70),       // 个体寿命差异 ±30%（避免整批一起老死）
+    gen:g||1,aversion:0,br:newFlyBrain(),cd:8+Math.random()*10,state:'巡游',
+    intent:'wander',aim:null,intentT:0,mateLock:0,fleeLock:0,
+    hs:hs,hc:hc,hm:hm,spkAcc:0,chased:0,fleeTime:0,avRate:0,avMark:0,avMarkT:0,
+    avHist:(function(){var z=[];for(var q=0;q<60;q++)z.push(0);return z;})(),avAcc:0});
+}
+function eAvgNow(){
+  if(!flies.length) return 0;
+  var t=0; for(var i=0;i<flies.length;i++) t+=flies[i].energy;
+  return Math.round(t/flies.length);
+}
+function pAvgNow(){
+  if(!preds.length) return 0;
+  var t=0; for(var i=0;i<preds.length;i++) t+=preds[i].energy;
+  return Math.round(t/preds.length);
+}
+function flyCrowdFactor(){
+  var cap0 = (P.softCap||32);
+  return flies.length <= cap0 ? 1 : Math.max(0, 1 - (flies.length - cap0) / (cap0*0.9));
+}
+function predCrowdFactor(){
+  var cap0 = (P.pSoftCap||6);
+  return preds.length <= cap0 ? 1 : Math.max(0, 1 - (preds.length - cap0) / (cap0*0.9));
+}
+function decide(f){
+  if(f.mateLock>0){ f.intent='mate_locked'; return; }
+  // 目标坚持：已有目标且仍有效时，70% 概率继续做这件事（不会两三秒换个方向）
+  if(f.aim && Math.random()<0.72){
+    if(f.intent==='food' && foods.indexOf(f.aim)>=0) return;
+    if(f.intent==='mate' && flies.indexOf(f.aim)>=0) return;
+  }
+  if(f.intent==='trap' && f.aimLure && Math.random()<0.72) return;
+  // 低密度：优先找伴侣（开关控制）
+  var low = !!P.lowFind && flies.length <= P.lowFly;
+  var needE  = low ? Math.min(30, P.breedE*0.4) : P.breedE*0.85;
+  // 密度制约：接近上限时不再主动求偶（靠"不生"控数量，不靠丢卵）
+  var crowded = flies.length >= (P.softCap||32);   // 超过软容量：暂停繁殖（数量少时自动恢复）
+  // 想繁殖：先找伴侣（平方距离，省 sqrt）
+  if(f.energy>needE && f.cd<=0 && (!crowded || flies.length<(P.lowKeep||40))){
+    var bm=null, bd=9e9;
+    for(var i=0;i<flies.length;i++){
+      var o=flies[i];
+      if(o===f || o.cd>0 || o.energy<P.breedE || Math.abs(o.gen-f.gen)>1) continue;
+      var d=(o.u-f.u)*(o.u-f.u)+(o.v-f.v)*(o.v-f.v);
+      if(d<bd){bd=d;bm=o;}
+    }
+    if(bm && bd<(low?0.75:0.25)){ f.intent='mate'; f.aim=bm; return; }   // 稀少时搜索半径 ×3
+  }
+  // 捕蝇草气味引诱（少量）：附近有夹子时，偶尔被吸引过去
+  if(traps.length && Math.random() < 0.08){
+    var bt=null, btd=9e9;
+    for(var ti2=0; ti2<traps.length; ti2++){
+      var tr2=traps[ti2];
+      if(tr2.closedT>0) continue;                          // 闭合中：不散发蜜汁
+      var dt2=(tr2.u-f.u)*(tr2.u-f.u)+(tr2.v-f.v)*(tr2.v-f.v);
+      if(dt2<btd){ btd=dt2; bt=tr2; }
+    }
+    if(bt && btd < 0.0324){                 // 0.18 距离内才闻得到（少量吸引）
+      f.intent='trap'; f.aimLure={u:bt.u,v:bt.v};
+      return;
+    }
+  }
+  // 否则找食物
+  var bf=null, fd=9e9;
+  for(var k=0;k<foods.length;k++){
+    var fo=foods[k];
+    var d2=(fo.u-f.u)*(fo.u-f.u)+(fo.v-f.v)*(fo.v-f.v);
+    if(d2<fd){fd=d2;bf=fo;}
+  }
+  if(bf){ f.intent='food'; f.aim=bf; return; }
+  f.intent='wander'; f.aim=null;
+}
+function reset(){
+  flies=[];foods=[];preds=[];eggs=[];hatched=0;idSeq=1;gen=1;predGen=1;spiderKills=0;eaten=0;mates=0;matesP=0;selected=null;selPred=null;
+  $('#brain').classList.remove('on');
+  genTerrain(); buildPatches();
+  for(var i=0;i<P.initN;i++){
+    var sw=null;
+    if(patchC.length){
+      var c=patchC[i%patchC.length];
+      var th=Math.random()*6.2832, rr=Math.sqrt(Math.random())*c.r*1.3;
+      var u=Math.max(0.04,Math.min(0.96,c.u+Math.cos(th)*rr));
+      var v=Math.max(0.04,Math.min(0.96,c.v+Math.sin(th)*rr));
+      if(hAt(u,v)>=WATER+0.03) sw={u:u,v:v};
+    }
+    if(!sw) sw=freeSpot();
+    addFly(sw.u,sw.v,1);
+  }
+  frogs=[]; traps=[];
+  for(var f=0;f<12;f++) addFood();
+  for(var p=0;p<P.pInit;p++) addPred();
+  if(P.frogOn){ for(var gi=0;gi<P.frogN;gi++) addFrog(); }
+  if(P.venusOn){ for(var vi=0;vi<P.venusN;vi++) addTrap(); }
+}
+/* genTerrain/reset 挪到脑网络编译之后执行（见文件后部） */
+
+/* ---------------- 交互 ---------------- */
+var dragging=false, dragMoved=false, lastX=0, lastY=0, downX=0, downY=0, downT=0;
+cv.addEventListener('pointerdown',function(e){
+  dragging=true; dragMoved=false;
+  lastX=e.clientX; lastY=e.clientY;
+  downX=e.clientX; downY=e.clientY; downT=performance.now();
+});
+function trySelect(cx,cy){
+  var best=null, bd=26, kind=null;
+  for(var i=0;i<flies.length;i++){
+    var f=flies[i], p=toScreen(f.u,f.v);
+    var d=Math.hypot(p[0]-cx,p[1]-cy);
+    if(d<bd){ bd=d; best=f; kind='fly'; }
+  }
+  for(var k=0;k<preds.length;k++){
+    var pr=preds[k], q=toScreen(pr.u,pr.v);
+    var d2=Math.hypot(q[0]-cx,q[1]-cy)-4;
+    if(d2<bd){ bd=d2; best=pr; kind='pred'; }
+  }
+  for(var fq=0; fq<frogs.length; fq++){
+    var fg2=frogs[fq], pq=toScreen(fg2.u,fg2.v);
+    var d3=Math.hypot(pq[0]-cx,pq[1]-cy)-6;    // 青蛙大一点
+    if(d3<bd){ bd=d3; best=fg2; kind='frog'; }
+  }
+  if(best){
+    if(kind==='fly'){ selected=best; selPred=null; selFrog=null; }
+    else if(kind==='pred'){ selPred=best; selected=null; selFrog=null; }
+    else { selFrog=best; selected=null; selPred=null; }
+    document.getElementById('brain').classList.add('on');
+    return true;
+  }
+  return false;
+}
+addEventListener('pointerup',function(e){
+  if(!dragging){ dragging=false; return; }
+  var moved=Math.hypot(e.clientX-downX, e.clientY-downY);
+  var quick=(performance.now()-downT)<600;
+  if(moved<14 && quick){                // 手抖也算点击
+    trySelect(e.clientX, e.clientY);
+  }
+  dragging=false; dragMoved=false;
+});
+addEventListener('pointercancel',function(){ dragging=false; dragMoved=false; });
+addEventListener('pointermove',function(e){
+  if(!dragging) return;
+  var dx=e.clientX-lastX, dy=e.clientY-lastY;
+  var total=Math.hypot(e.clientX-downX, e.clientY-downY);
+  if(total>12){                        // 挪过 12px 才算拖拽
+    dragMoved=true;
+    var scale=Math.min(innerWidth,innerHeight)*0.92*view.zoom;
+    view.x-=dx/scale; view.y-=dy/scale;
+    lastX=e.clientX; lastY=e.clientY;
+  }
+});
+var pinchD=0;
+cv.addEventListener('touchstart',function(e){
+  if(e.touches.length===2){
+    pinchD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                      e.touches[0].clientY-e.touches[1].clientY);
+    dragging=false;
+  }
+},{passive:true});
+cv.addEventListener('touchmove',function(e){
+  if(e.touches.length===2 && pinchD>0){
+    var d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                     e.touches[0].clientY-e.touches[1].clientY);
+    var r=d/pinchD; pinchD=d;
+    view.zoom=Math.max(0.6,Math.min(6,view.zoom*r));
+    e.preventDefault();
+  }
+},{passive:false});
+cv.addEventListener('touchend',function(e){ if(e.touches.length<2) pinchD=0; },{passive:true});
+cv.addEventListener('wheel',function(e){
+  e.preventDefault();
+  view.zoom=Math.max(0.6,Math.min(6,view.zoom*(e.deltaY>0?0.9:1.1)));
+},{passive:false});
+
+$('#btnPause').onclick=function(){ paused=!paused; this.textContent=paused?'▶':'⏸'; };
+$('#btnReset').onclick=function(){ reset(); };
+$('#tFood').onclick=function(){ for(var i=0;i<4;i++) addFood(); };
+$('#tPred').onclick=function(){ addPred(); };
+$('#tClear').onclick=function(){ preds=[]; };
+/* 顶栏折叠：▾ / ▸ */
+$('#stToggle').onclick=function(e){
+  e.stopPropagation();
+  var box=document.getElementById('statsBox');
+  box.classList.toggle('collapsed');
+  this.textContent = box.classList.contains('collapsed') ? '▸' : '▾';
+};
+$('#tChart').onclick=function(e){
+  e.stopPropagation();
+  chartOn=!chartOn;
+  energyOn=chartOn;                                 // 两张表一起开关
+  document.getElementById('chart').classList.toggle('on', chartOn);
+  document.getElementById('chart2').classList.toggle('on', chartOn);
+  this.classList.toggle('on', chartOn);
+  if(chartOn){ drawChart(); drawEnergyChart(); }
+};
+$('#tLegend').onclick=function(e){
+  e.stopPropagation();
+  var lg=document.getElementById('legend');
+  lg.classList.toggle('on');
+  var open=lg.classList.contains('on');
+  this.textContent = open ? '📖 收起' : '📖 图例';
+  this.classList.toggle('on', open);
+};
+$('#tFly').onclick=function(){
+  if(flies.length>=P.maxPop) return;      // 到上限
+  var s0=freeSpot(); addFly(s0.u,s0.v, gen);
+};
+$('#tParam').onclick=function(e){
+  e.stopPropagation();
+  var pn=document.getElementById('param');
+  pn.classList.toggle('on');
+  this.classList.toggle('on', pn.classList.contains('on'));
+  try{ localStorage.setItem('kwworld', JSON.stringify(P)); }catch(err){}
+};
+$('#pClose').onclick=function(){
+  try{ localStorage.setItem('kwworld', JSON.stringify(P)); }catch(e){}
+  $('#param').classList.remove('on');
+  document.getElementById('tParam').classList.remove('on');
+};
+/* 参数 ↔ 控件 全量映射（新增参数只要加一行） */
+var PID = {
+  met:'q-met', hungry:'q-hung', eat:'q-eat', foodE:'q-fen', breedE:'q-breed',
+  eggT:'q-egg', life:'q-life', mateCD:'q-mate', predSpeed:'q-psp', catchP:'q-pcatch',
+  learn:'q-learn', forget:'q-forget', initN:'q-init', pInit:'q-pinit', satiety:'q-satiety',
+  softCap:'q-softcap', pSoftCap:'q-psoftcap', maxPop:'q-max', pMax:'q-pmax',
+  pBreedE:'q-pbreed', pEggT:'q-pegg', pLife:'q-plife', mateR:'q-mater',
+  pMateCD:'q-pmatecd', pClutch:'q-pclutch', temp:'q-temp', fClutch:'q-fclutch',
+  patchy:'q-patchy', lowFly:'q-lowfly', lowPred:'q-lowpred', lowKeep:'q-lowkeep',
+  foodK:'q-foodk', frogN:'q-frogn', frogReach:'q-frogreach', venusN:'q-venusn'
+};
+var PCK = { lowFind:'q-lowfind', frogOn:'q-frogon', venusOn:'q-venuson' };
+
+function applyLive(key){                 // 需要"立刻生效"的参数
+  if(key==='frogN'){
+    while(frogs.length > P.frogN) frogs.pop();
+    while(P.frogOn && frogs.length < P.frogN) addFrog();
+  }
+  if(key==='venusN'){
+    while(traps.length > P.venusN) traps.pop();
+    while(P.venusOn && traps.length < P.venusN) addTrap();
+  }
+  if(key==='frogOn' || key==='venusOn'){
+    if(!P.frogOn) frogs=[];
+    else { while(frogs.length<P.frogN) addFrog(); }
+    if(!P.venusOn) traps=[];
+    else { while(traps.length<P.venusN) addTrap(); }
+  }
+}
+function syncAllUI(){
+  Object.keys(PID).forEach(function(k){
+    var el=document.getElementById(PID[k]); if(!el) return;
+    el.value=P[k];
+    var b=document.getElementById(PID[k].replace('q-','v-'));
+    if(b) b.textContent = (typeof P[k]==='number' ? (Math.abs(P[k])<1? P[k].toFixed(3): (Number.isInteger(P[k])?P[k]:P[k].toFixed(2))) : P[k]);
+  });
+  Object.keys(PCK).forEach(function(k){
+    var el=document.getElementById(PCK[k]); if(!el) return;
+    el.checked=!!P[k];
+    var b=document.getElementById(PCK[k].replace('q-','v-'));
+    if(b) b.textContent=P[k]? (k==='lowFind'?'开':'开') : '关';
+  });
+  // 特殊文案
+  var vf=document.getElementById('v-frogon'); if(vf) vf.textContent=P.frogOn?'开':'关';
+  var vv=document.getElementById('v-venuson'); if(vv) vv.textContent=P.venusOn?'开':'关';
+  var vl=document.getElementById('v-lowfind'); if(vl) vl.textContent=P.lowFind?'开':'关';
+  var va=document.getElementById('v-anti'); if(va) va.textContent=P.antiExtinct?'开':'关';
+}
+function saveParams(){ try{ localStorage.setItem('kwworld', JSON.stringify(P)); }catch(e){} }
+
+$('#pReset').onclick=function(e){
+  e && e.stopPropagation();
+  Object.keys(P_DEF).forEach(function(k){ P[k]=P_DEF[k]; });
+  syncAllUI();
+  ['frogN','venusN','frogOn','venusOn'].forEach(applyLive);
+  saveParams();
+  if(typeof toast0==='function') toast0('已恢复默认参数');
+  else { var hd=document.querySelector('.stats .st-hd span'); if(hd){ hd.textContent='📊 已恢复默认'; setTimeout(function(){ hd.textContent='📊 数据'; },1500);} }
+};
+var speedMul=1;
+$('#tSpeed').onclick=function(){
+  speedMul = (speedMul===1)?5:(speedMul===5?10:1);
+  this.textContent = '⏩ '+speedMul+'×';
+};
+$('#bClose').onclick=function(){ selected=null; selPred=null; selFrog=null; $('#brain').classList.remove('on'); };
+if(/[?&]sel=1/.test(location.search)) setTimeout(function(){ if(flies.length){ selected=flies[0]; $('#brain').classList.add('on'); } }, 900);
+
+/* ============ 实测连接组降维脑（FlyEM 雄性 CNS v1.0）============
+   来源：165,122 神经元 / 25,568,639 突触（2026-09 Janelia·Cambridge·Google）
+   降维：按细胞类型聚合 25 群 → 只留 ≥5 突触/对 → 每后神经元突触数
+        → min(5, log2(1+驱动/中位数)) 压缩 → 群内自连接 ×0.15
+   145 条边中 119 条（82%）直接实测，其余标 inf（工程桥接）
+   LIF：τm=20ms τsyn=5ms 不应期 2ms 适应 0.18；w = wSyn·gain·K·强度·极性
+   ================================================================= */
+/* 脑网络改为外链 flybrain-net.js（与主页共用） */
+(function(){ var mm=location.search.match(/[?&]temp=([0-9.]+)/); if(mm) P.temp=parseFloat(mm[1]); })();
+if(/[?&]venus=1/.test(location.search)){ P.venusOn=1; }   // 测试用：开捕蝇草
+if(/[?&]frog=0/.test(location.search)){ P.frogOn=0; }     // 测试用：关青蛙
+drawLegendIcons();
+genTerrain(); reset();          // 世界初始化（此时 NET 已就绪）
+if(/[?&]dbg=1/.test(location.search)){
+  window.__dbg={ get frogs(){return frogs;}, get traps(){return traps;},
+                 get preds(){return preds;}, hAt:hAt, isNearWater:isNearWater,
+                 waterEdgeSpot:waterEdgeSpot, WATER:WATER };
+}
+/* 世界状态 → 感觉输入（把行为事件灌进对应感觉群） */
+function nearestThreat(f){
+  var best={d:9e9, kind:'—', u:0, v:0};
+  for(var i=0;i<preds.length;i++){
+    var d=Math.hypot(preds[i].u-f.u, preds[i].v-f.v);
+    if(d<best.d) best={d:d, kind:'蜘蛛', u:preds[i].u, v:preds[i].v};
+  }
+  for(var j=0;j<frogs.length;j++){
+    var d2=Math.hypot(frogs[j].u-f.u, frogs[j].v-f.v);
+    if(d2<best.d) best={d:d2, kind:'青蛙', u:frogs[j].u, v:frogs[j].v};
+  }
+  // 注意：捕蝇草不算威胁——果蝇闻的是它的蜜汁，不会被吓跑（现实也是如此）
+  return best;
+}
+function feedBrainInputs(f, dt){
+  var br=f.br; if(!br) return;
+  var ext=br.ext;
+  for(var i=0;i<br.n;i++) ext[i]=0;
+  var th=nearestThreat(f);
+  var nearP = Math.max(0, 1 - th.d*8);       // 威胁强度（含青蛙/捕蝇草）
+  var nearF=1;
+  for(var fi=0;fi<foods.length;fi++){
+    var d2=Math.hypot(foods[fi].u-f.u, foods[fi].v-f.v)*8;
+    if(d2<nearF) nearF=d2;
+  }
+  var seeP=nearP, seeF=Math.max(0,1-nearF);
+  var hungry=Math.max(0,(P.hungry-f.energy)/P.hungry);
+  // 感觉群（含环境背景气味，静息时也有低频活动）
+  ext[NET.start['ORN_food']]   += 0.55 + seeF*5.5;    // 背景 + 食物气味
+  ext[NET.start['ORN_ferm']]   += 0.25 + (f.onSticky?5.0:0);
+  ext[NET.start['ORN_alarm']]  += (f.stuck?5.0:0);
+  ext[NET.start['mechano']]    += 0.35 + seeP*4.8;    // 机械/听觉
+  if(seeP>0.45) ext[NET.start['PPL1']] += (seeP-0.45)*9.0;   // 捕食威胁→惩罚多巴胺
+  ext[NET.start['visual']]     += 0.45 + seeP*3.6;    // 视觉
+  ext[NET.start['GRN_sugar']]  += (f.state==='进食'?5.0:0);
+  // 驱动群
+  ext[NET.start['Hugin']]      += hungry*4.5;         // 饥饿
+  ext[NET.start['FB_energy']]  += (f.energy>140?3.6:0);// 饱足
+  f.seeP=seeP; f.seeF=seeF;
+}
+
+/* 放电率 → 行为读出 */
+function readBrainOut(f){
+  var br=f.br; if(!br) return;
+  f.mnWalk = fbRate(br,'MN_walk');        // r 已按 1/τR 归一，直接读 Hz
+  f.mnFeed = fbRate(br,'MN_feed');
+  f.mnEsc  = fbRate(br,'DN_escape');
+  f.mnStep = fbRate(br,'MN_oviposit');
+  var av = fbRate(br,'MBON_av');
+  f.avTarget = Math.max(0,Math.min(1, av/30));    // MBON_av 约 0~30 Hz 映射到 0~1
+}
+
+var brainTick=0;
+function stepBrain(f,dt){
+  if(!f.br){ f.br=newFlyBrain(); }
+  if(f!==selected){
+    f._bt=(f._bt||0)+1;
+    if(f._bt%3!==0) return;          // 非选中个体降频
+    dt*=3;
+  }
+  feedBrainInputs(f,dt);
+  // 按 20ms 子步推进 LIF（世界步长 50ms → 2~3 步）
+  var sub=0.02, steps=Math.min(3, Math.max(1, Math.round(dt/sub)));
+  for(var s0=0;s0<steps;s0++) fbStep(f.br, dt/steps);
+  readBrainOut(f);
+  // 学习：跟随 MBON_av（由 PPL1 门控的 KC→MBON_av 权重决定）；遗忘：按"遗忘率"参数回落
+  var tgtA=f.avTarget||0;
+  if(tgtA > f.aversion){
+    f.aversion += (tgtA-f.aversion) * Math.min(1, 0.35*dt);        // 学习收敛速度
+  }else{
+    f.aversion = Math.max(tgtA, f.aversion - P.forget*dt);        // 按遗忘率慢慢掉
+  }
+  // 学习/遗忘速率
+  f.avMarkT=(f.avMarkT||0)+dt;
+  if(f.avMarkT>=1){
+    f.avRate=((f.aversion-(f.avMark||0))/f.avMarkT);
+    f.avMark=f.aversion; f.avMarkT=0;
+  }
+  // 曲线
+  f.avAcc=(f.avAcc||0)+dt;
+  if(f.avAcc>=0.5 && f.avHist){ f.avAcc-=0.5; f.avHist.push(f.aversion); f.avHist.shift(); }
+  // 放电条：按三列聚合真实放电率
+  f.spkAcc=(f.spkAcc||0)+dt;
+  if(f.spkAcc>=0.1){
+    f.spkAcc-=0.1;
+    if(f.hs){
+      var sS=0,sD=0,sC=0,sM=0,nS=0,nD=0,nC=0,nM=0;
+      for(var i=0;i<f.br.n;i++){
+        var c=NET.col[i];
+        var rv=Math.min(1, f.br.r[i]/(c==='Sensory'?28:(c==='Motor'?60:75)));
+        if(c==='Sensory'){ sS+=rv; nS++; }
+        else if(c==='Drives'){ sD+=rv; nD++; }
+        else if(c==='Central'){ sC+=rv; nC++; }
+        else { sM+=rv; nM++; }
+      }
+      f.hs.push(nS?sS/nS:0); f.hs.shift();
+      f.hc.push((sD+nC)?(sD+sC)/(nD+nC):0); f.hc.shift();
+      f.hm.push(nM?sM/nM:0); f.hm.shift();
+    }
+  }
+}
+
+/* ---------------- 模拟 ---------------- */
+var tAll=0;
+function step(dt,light){
+  tAll+=dt;
+  /* 蜘蛛游走 */
+  for(var pi=preds.length-1; pi>=0; pi--){
+    var p=preds[pi];
+    // 找最近果蝇，靠近就追
+    var prey=null, pd=9e9;
+    flies.forEach(function(f){
+      var d=Math.hypot(f.u-p.u, f.v-p.v);
+      if(d<pd){ pd=d; prey=f; }
+    });
+    feedSpiderInputs(p);
+    spStep(p.br, dt); spStep(p.br, dt); spStep(p.br, dt);   // 3 子步
+    readSpiderOut(p);
+    sampleSpiderStrip(p, dt);
+    // 脑读出调制：步足放电→速度；张口放电→捕食概率；回避强→掉头
+    var walkK = 0.55 + Math.min(1, p.spWalk/22)*0.9;
+    p.satT = Math.max(0, (p.satT||0) - dt);           // 饱腹倒计时
+    var chasing = prey && pd<0.30 && p.satT<=0;       // 饱腹中不追猎
+    p.chasingNow = chasing;
+    if(!chasing && prey && Math.random()<0.25){
+      // 附近没到追猎距离，但大致知道方向 → 朝猎物方向巡逻搜索
+      p.dir = Math.atan2(prey.v-p.v, prey.u-p.u) + (Math.random()-0.5)*0.6;
+      p.sp = P.predSpeed*0.9;
+    }
+    if(chasing){
+      p.dir = Math.atan2(prey.v-p.v, prey.u-p.u);
+      p.sp = P.predChase * walkK * 1.05;
+    }else{
+      p.dir+=(Math.random()-0.5)*1.4*dt;
+      p.sp = P.predSpeed * 0.47 * (0.6 + Math.min(1, p.spWalk/25)*0.7);
+    }
+    var spd0 = p.satT>0 ? p.sp*0.45 : p.sp;           // 消化中走得慢
+    var nu=p.u+Math.cos(p.dir)*spd0*dt, nv=p.v+Math.sin(p.dir)*spd0*dt;
+    if(hAt(nu,nv)<WATER+0.015){ p.dir+=Math.PI*0.75; }   // 前面是水就转向
+    else { p.u=nu; p.v=nv; }
+    // 蜘蛛僵住自救（比如被水圈住）
+    if(p._lu!==undefined){
+      var pmv=Math.abs(p.u-p._lu)+Math.abs(p.v-p._lv);
+      p._still=(pmv<0.0004)?(p._still||0)+dt:0;
+      if(p._still>2.5){ p._still=0; p.dir+=1.5+Math.random()*2; }
+    }
+    p._lu=p.u; p._lv=p.v;
+    // 蜘蛛寿命与代谢
+    p.age+=dt*(1/tempLifeK());          // 温度影响寿命
+    p.energy-=0.15*tempMetK()*dt; p.cd=Math.max(0,p.cd-dt);   // 更耐饿
+    if(p.age>(p.lifeMax||P.pLife) || p.energy<=0){
+      if(selPred===p){ selPred=null; }   // 面板保持
+      preds.splice(pi,1); continue;      // 蜘蛛死了，清掉选中
+    }
+    // 能量够 + 想繁衍 → 靠近同伴；但附近有猎物时先吃饭（不聚堆）
+    var preyNear = (prey && pd<0.20);
+    if(!preyNear && preds.length>1 && preds.length<P.pMax && p.cd<=0 && p.energy>P.pBreedE){
+      var mateA=null, maD=9e9;
+      for(var qi=0;qi<preds.length;qi++){
+        var oq=preds[qi];
+        if(oq===p || oq.cd>0) continue;
+        var dq=Math.hypot(oq.u-p.u, oq.v-p.v);
+        if(dq<maD){ maD=dq; mateA=oq; }
+      }
+      if(mateA && maD>0.09){ p.dir=Math.atan2(mateA.v-p.v, mateA.u-p.u); p.sp=P.predChase; }
+    }
+    // 蜘蛛稀缺时主动去找同伴
+    if(preds.length>1 && preds.length<4){
+      var near2=null, nd2=9e9;
+      preds.forEach(function(o){ if(o===p){return;} var dd=Math.hypot(o.u-p.u,o.v-p.v); if(dd<nd2){nd2=dd;near2=o;} });
+      if(near2 && nd2>0.06){ p.dir=Math.atan2(near2.v-p.v, near2.u-p.u); p.sp=P.predChase; }
+    }
+    // 蜘蛛繁衍：能量足 + 附近有另一只 → 产蜘蛛卵
+    var pScarce = !!P.lowFind && preds.length <= P.lowPred;
+    var pLast   = false;
+    var pNeedE  = pScarce ? Math.min(45, P.pBreedE*0.35) : P.pBreedE;
+    if(pLast && p.energy>pNeedE && p.cd<=0){        // 兼性孤雌（稀有时才开）
+      p.cd=45; p.energy-=30;
+      var elS=nearestLand(p.u,p.v);
+      if(elS && eggs.length<60) eggs.push({u:elS.u,v:elS.v,t:0,gen:(p.gen||1)+1,spider:true});
+    }
+    var pCrowded = preds.length >= (P.pSoftCap||14);
+    if(p.energy>pNeedE && p.cd<=0 && preds.length<P.pMax && (!pCrowded || preds.length<6)){
+      var mateP=null, mpd=9e9;
+      preds.forEach(function(o){
+        if(o===p || o.cd>0 || o.energy<(pScarce?25:P.pBreedE*0.8)) return;
+        var d=Math.hypot(o.u-p.u, o.v-p.v);
+        if(d<mpd){ mpd=d; mateP=o; }
+      });
+      if(mateP && mpd<(pScarce? Math.max(0.45, P.mateR*3) : P.mateR)){
+        p.cd=P.pMateCD; mateP.cd=P.pMateCD; matesP++;
+        p.layCount=(p.layCount||0)+1; mateP.layCount=(mateP.layCount||0)+1;
+        p.energy-=40; mateP.energy-=40;
+        var el1=nearestLand((p.u+mateP.u)/2,(p.v+mateP.v)/2);
+        var nClutch=Math.max(1, Math.round(P.pClutch||1));
+        for(var ci=0; ci<nClutch && eggs.length<60; ci++){
+          var elc=nearestLand(el1?el1.u:p.u, el1?el1.v:p.v) || el1;
+          if(elc) eggs.push({u:elc.u+(Math.random()-0.5)*0.02, v:elc.v+(Math.random()-0.5)*0.02,
+                             t:0, gen:Math.max(p.gen||1,mateP.gen||1)+1, spider:true});
+        }
+      }
+    }
+    // 蜘蛛贴身 → 捕食（饱腹中不吃）
+    for(var fi=flies.length-1;fi>=0 && p.satT<=0;fi--){
+      var fy=flies[fi];
+      if(Math.hypot(fy.u-p.u, fy.v-p.v) < 0.030){
+        fy.aversion=Math.min(1, fy.aversion+P.learn*dt*2);
+        var strikeK = 0.55 + Math.min(1, p.spStrike/22)*0.95;
+        if(Math.random()<P.catchP*dt*strikeK){
+          flies.splice(fi,1); eaten++; spiderKills++; p.energy=Math.min(175, p.energy+95);
+          p.kill=(p.kill||0)+1;
+          p.satT=(P.satiety||45)*(0.75+Math.random()*0.6);   // 吃饱歇一会儿（有个体差异）
+          if(selected===fy){ selected=null; }   // 选中个体被吃了，面板保持
+        }
+      }
+    }
+    // 领地性：离同伴太近就互让（蜘蛛独居，不聚堆）
+    for(var oi=0; oi<preds.length; oi++){
+      if(oi===pi) continue;
+      var oo=preds[oi];
+      var dd=Math.hypot(oo.u-p.u, oo.v-p.v);
+      if(dd>0.001 && dd<0.06 && !p.chasingNow && !oo.chasingNow){
+        var push=(0.06-dd)*0.8*dt;
+        var qu=p.u+(p.u-oo.u)/dd*push, qv=p.v+(p.v-oo.v)/dd*push;
+        if(hAt(qu,qv) >= WATER+0.02){ p.u=qu; p.v=qv; }   // 不往水里推
+      }
+    }
+    if(p.u<0.04||p.u>0.96) p.dir=Math.PI-p.dir;
+    if(p.v<0.04||p.v>0.96) p.dir=-p.dir;
+    p.u=Math.max(0.04,Math.min(0.96,p.u)); p.v=Math.max(0.04,Math.min(0.96,p.v));
+  }
+  /* 果蝇 */
+  for(var i=flies.length-1;i>=0;i--){
+    var f=flies[i];
+    f.age+=dt*(1/tempLifeK());   // 温度影响寿命   // 温度影响寿命
+    f.energy-=P.met*tempMetK()*dt;      // 温度影响代谢
+    f.cd=Math.max(0,f.cd-dt);           // 交配冷却（之前被误吞进注释，导致永不繁殖）
+    // 僵住自救：位置几乎没变就重新决策
+    if(f._lu!==undefined){
+      var moved=Math.abs(f.u-f._lu)+Math.abs(f.v-f._lv);
+      f._still = (moved<0.0004) ? (f._still||0)+dt : 0;
+      if(f._still>2.0 && f.mateLock<=0){
+        f._still=0; f.aim=null; f.intent='wander';
+        f.intentT=0; f.dir+=1.5+Math.random()*2;
+        f.state='巡游';
+      }
+    }
+    f._lu=f.u; f._lv=f.v;
+    if(f.energy<=0||f.age>(f.lifeMax||P.life)){ flies.splice(i,1); if(selected===f){ selected=null; } continue; }   // 面板不自动关
+
+    /* 最近蜘蛛 */
+    var th2=nearestThreat(f);
+    var np=(th2.d<9e8)?th2:null;        // 最近威胁（蜘蛛/青蛙/捕蝇草）
+    var nd=th2.d;
+    if(np){
+      // 靠近蜘蛛就会积累厌恶性（越近越快）——这就是"学习"
+      var learnR=0.05+0.05*f.aversion;
+      if(nd<learnR){
+        var near=1-nd/learnR;                         // 0~1
+        f.aversion=Math.min(1, f.aversion + P.learn*(0.4+0.6*near)*dt);
+      }
+      // 再判逃跑：学会后躲得更远
+      if(nd<0.02+0.06*f.aversion){
+        if(!(f.fleeLock>0)){ f.chased=(f.chased||0)+1; f.fleeLock=1.2; }   // 只在没锁时触发
+      }
+    }
+    /* 逃跑锁定：被吓到后持续逃 1.2 秒，避免状态闪烁 */
+    if(f.fleeLock>0){ f.fleeLock-=dt; }
+    if(f.mateLock>0){ f.mateLock-=dt; }
+
+    /* 意图缓存：每 1 秒才重新决策一次 */
+    f.intentT-=dt;
+    if(f.intentT<=0 && f.mateLock<=0 && f.fleeLock<=0){
+      decide(f); f.intentT=(1.4+Math.random()*0.8)*(flies.length>40?1.8:1);
+    }
+
+    if(f.fleeLock>0 && np){
+      var fax=f.u-np.u, fav=f.v-np.v, fal=Math.hypot(fax,fav)||1;
+      f.dir=Math.atan2(fav,fax);
+      var fsp=P.speed*1.6*(f.energy<P.hungry?0.8:1.0);
+      f.u+=fax/fal*fsp*dt; f.v+=fav/fal*fsp*dt;
+      f.u=Math.max(0.03,Math.min(0.97,f.u)); f.v=Math.max(0.03,Math.min(0.97,f.v));
+      f.state='逃跑';
+      f.fleeTime=(f.fleeTime||0)+dt;
+      if(!light || f===selected) stepBrain(f,dt);
+      continue;
+    }
+
+    if(f.mateLock>0){                       // 交配中：原地不动
+      f.state='交配';
+      if(!light || f===selected) stepBrain(f,dt);
+      continue;
+    }
+
+    // —— 兜底：两只条件都满足且靠得够近，直接交配（绕开状态机）——
+    if(f.cd<=0 && f.mateLock<=0 && f.energy>P.breedE && (flies.length < (P.softCap||32) || flies.length<(P.lowKeep||34))){
+      for(var mi=0; mi<flies.length; mi++){
+        var mo=flies[mi];
+        if(mo===f || mo.cd>0 || mo.mateLock>0) continue;
+        if(mo.energy<=P.breedE || Math.abs(mo.gen-f.gen)>1) continue;
+        if(Math.hypot(mo.u-f.u, mo.v-f.v) < 0.045){
+          f.cd=P.mateCD; mo.cd=P.mateCD; f.mateLock=3.5; mo.mateLock=3.5;
+          f.energy-=35; mo.energy-=35; mates++;
+          var elm=nearestLand(f.u,f.v);
+          var nEgg2=Math.max(1, Math.round(P.fClutch||1));
+          for(var ei2=0; ei2<nEgg2 && eggs.length<60; ei2++){
+            var elq=nearestLand(f.u+(Math.random()-0.5)*0.02, f.v+(Math.random()-0.5)*0.02) || elm;
+            if(elq) eggs.push({u:elq.u,v:elq.v,t:0,gen:Math.max(f.gen,mo.gen)+1});
+          }
+          f.state='交配'; mo.state='交配';
+          break;
+        }
+      }
+    }
+
+    var goal=null;
+    if(f.intent==='mate' && f.aim && flies.indexOf(f.aim)>=0) goal=f.aim;
+    else if(f.intent==='food' && f.aim && foods.indexOf(f.aim)>=0) goal=f.aim;
+    else if(f.intent==='trap' && f.aimLure) goal=f.aimLure;   // 被捕蝇草引诱
+
+    if(goal){
+      var gx=goal.u-f.u, gv=goal.v-f.v, gl=Math.hypot(gx,gv)||1;
+      // 目标方向 + 随机抖动（真实昆虫是"忽东忽西地接近"，不是拉直线）
+      f.dir=Math.atan2(gv,gx) + (Math.random()-0.5)*0.7;
+      var sp=P.speed*(f.energy<P.hungry?1.15:0.8);
+      if(f.intent==='mate') sp*=1.35;      // 求偶冲刺，追得上同速个体
+      f.u+=gx/gl*sp*dt; f.v+=gv/gl*sp*dt;
+
+      if(f.intent==='trap' && gl<0.020){ f.intentT=0; f.aimLure=null; f.state='觅食'; }
+      if(f.intent==='food' && gl<0.012){
+        var amt=Math.min(P.eat*dt,goal.energy);
+        f.energy=Math.min(175,f.energy+amt); goal.energy-=amt*1.0;
+        f.state='进食';
+        if(goal.energy<=0) foods.splice(foods.indexOf(goal),1);
+        f.intentT=0;
+        // 吃饱了 / 食物吃完了 → 立刻走人，不许原地僵着
+        if(f.energy>=172 || goal.energy<=0){
+          f.aim=null; f.intent='wander';
+          f.intentT=1.5+Math.random();
+          f.dir+=1.2+Math.random()*1.5;      // 换个方向走
+          f.state='巡游';
+        }
+      } else if(f.intent==='mate' && gl<0.040 && f.cd<=0 && goal.cd<=0
+                && f.energy>P.breedE && goal.energy>P.breedE){
+        f.cd=P.mateCD; goal.cd=P.mateCD; f.energy-=35; goal.energy-=35; mates++;
+        var el0=nearestLand(f.u,f.v);
+        var nEgg=Math.max(1, Math.round(P.fClutch||1));
+        for(var ei=0; ei<nEgg && eggs.length<60; ei++){
+          var elp=nearestLand(f.u+(Math.random()-0.5)*0.02, f.v+(Math.random()-0.5)*0.02) || el0;
+          if(elp) eggs.push({u:elp.u,v:elp.v,t:0,gen:Math.max(f.gen,goal.gen)+1});
+        }
+        f.mateLock=3.5; goal.mateLock=3.5;
+        f.state='交配'; goal.state='交配';
+        f.intentT=0;
+      } else {
+        f.state = (f.intent==='mate') ? '求偶' : '觅食';
+      }
+    }else{
+      f.dir+=(Math.random()-0.5)*2*dt;
+      f.u+=Math.cos(f.dir)*P.speed*0.7*dt; f.v+=Math.sin(f.dir)*P.speed*0.7*dt;
+      f.state='巡游';
+      f.intentT=Math.min(f.intentT,0.2);
+    }
+    var cu=f.u, cv=f.v;
+    f.u=Math.max(0.03,Math.min(0.97,f.u)); f.v=Math.max(0.03,Math.min(0.97,f.v));
+    if(cu!==f.u || cv!==f.v){                 // 被边界夹住 → 沿墙滑走
+      if(cu!==f.u){ f.v += (Math.random()<0.5?-1:1)*P.speed*dt*1.2; f.dir=Math.PI-f.dir; }
+      if(cv!==f.v){ f.u += (Math.random()<0.5?-1:1)*P.speed*dt*1.2; f.dir=-f.dir; }
+      f.dir += (Math.random()-0.5)*0.6;
+    }
+    if(!light || f===selected) stepBrain(f,dt);
+  }
+  /* ---------- 青蛙：静伏 + 弹舌捕食 ---------- */
+  for(var fri=frogs.length-1; fri>=0; fri--){
+    var fr=frogs[fri];
+    if(selFrog===fr && frogs.indexOf(fr)<0) selFrog=null;
+    fr.cd=Math.max(0, fr.cd-dt);
+    feedFrogInputs(fr);
+    frStep(fr.br, dt); frStep(fr.br, dt);
+    readFrogOut(fr);
+    // 找最近果蝇
+    var tgt=null, td=9e9;
+    for(var fi2=0; fi2<flies.length; fi2++){
+      var d2=Math.hypot(flies[fi2].u-fr.u, flies[fi2].v-fr.v);
+      if(d2<td){ td=d2; tgt=flies[fi2]; }
+    }
+    // 弹舌：距离够近 + 舌头放电足够 → 捕食
+    if(tgt && td < P.frogReach && fr.cd<=0){
+      var tongueK = 0.35 + Math.min(1, fr.fTongue/18)*0.9;
+      if(Math.random() < 3.2*dt*tongueK){
+        flies.splice(flies.indexOf(tgt),1); fr.kills++; eaten++; fr.cd=P.frogCD;
+        fr.tongueT=0.25;
+        if(selected===tgt) selected=null;
+      }
+    }
+    if(fr.tongueT>0) fr.tongueT-=dt;
+    // 放电条采样
+    // 万一被推到旱地，往最近的岸带挪
+    if(!isNearWater(fr.u,fr.v) && Math.random()<0.8*dt){
+      var eg=waterEdgeSpot();
+      fr.u += (eg.u-fr.u)*0.12; fr.v += (eg.v-fr.v)*0.12;
+    }
+    fr.u=Math.max(0.04,Math.min(0.96,fr.u)); fr.v=Math.max(0.04,Math.min(0.96,fr.v));
+  }
+
+  /* ---------- 捕蝇草：静止陷阱 ---------- */
+  for(var ti=traps.length-1; ti>=0; ti--){
+    var tp=traps[ti];
+    tp.cd=Math.max(0, tp.cd-dt);
+    if(tp.closedT>0){ tp.closedT-=dt; continue; }
+    if(tp.cd>0 || tp.closedT>0) continue;
+    for(var fi3=flies.length-1; fi3>=0; fi3--){
+      var fl2=flies[fi3];
+      if(Math.hypot(fl2.u-tp.u, fl2.v-tp.v) < P.venusReach && Math.random()<0.55*dt*4){
+        flies.splice(fi3,1); tp.caught++; eaten++;
+        tp.closedT=P.venusCD; tp.cd=P.venusCD;   // 闭合期 = 消化期，全程闭着
+        if(selected===fl2) selected=null;
+        break;
+      }
+    }
+  }
+
+  /* 外来迁入（扩散）：蜘蛛不足 2 只且猎物充足时，偶尔有外来个体进入（开放系统）*/
+  if(preds.length<2 && flies.length>20 && Math.random()<0.06*dt){ addPred(); }
+
+  /* 卵 */
+  for(var k=eggs.length-1;k>=0;k--){
+    var e=eggs[k]; e.t+=dt;
+    var readyT = e.spider?P.pEggT:P.eggT;
+    if(e.t > readyT){
+      // 卵只管孵；数量靠"抑制繁殖"来控制，不靠丢卵
+      if(hAt(e.u,e.v)<WATER+0.02){
+        var el2=nearestLand(e.u,e.v);
+        if(!el2){ e.t=readyT*0.95; continue; }
+        e.u=el2.u; e.v=el2.v;
+      }
+      if(e.spider){
+        if(preds.length >= P.pMax){ e.t=readyT*0.95; continue; }   // 只受安全阀限制
+        eggs.splice(k,1); addPred(e.u,e.v,(e.gen||1)); predGen=Math.max(predGen, e.gen||1); hatched++;
+      }else{
+        if(flies.length >= P.maxPop){ e.t=readyT*0.95; continue; }
+        // 密度过高 → 部分卵自然死亡（幼虫竞争，不是硬上限）
+        var sc=(P.softCap||32);
+        if(flies.length > sc){
+          var alive=Math.max(0.15, 1 - (flies.length-sc)/(sc*1.2));
+          if(Math.random() > alive){ eggs.splice(k,1); continue; }
+        }
+        eggs.splice(k,1); gen=Math.max(gen,e.gen); addFly(e.u,e.v,e.gen); hatched++;
+      }
+    }
+  }
+  /* 食物补充 */
+  var capF = Math.min(70, (P.foodBase||15) + Math.floor(flies.length*(P.foodK||0.55)));
+  if(foods.length<capF && Math.random()<1.6*dt) addFood();
+  if(foods.length<capF && Math.random()<1.2*dt) addFood();
+}
+
+/* ---------------- 渲染 ---------------- */
+var terScreen=document.createElement('canvas'), terScreenCtx=terScreen.getContext('2d');
+var terKey='';
+function ensureTerScreen(){
+  var key=view.x.toFixed(4)+','+view.y.toFixed(4)+','+view.zoom.toFixed(3)+','+innerWidth+'x'+innerHeight;
+  if(key===terKey) return;
+  terKey=key;
+  terScreen.width=innerWidth; terScreen.height=innerHeight;
+  var s0=toScreen(0,0), s1=toScreen(1,1);
+  terScreenCtx.imageSmoothingEnabled=true;
+  terScreenCtx.clearRect(0,0,innerWidth,innerHeight);
+  terScreenCtx.drawImage(terCv, s0[0], s0[1], s1[0]-s0[0], s1[1]-s0[1]);
+}
+function draw(){
+  var w=innerWidth, h=innerHeight;
+  ctx.clearRect(0,0,w,h);
+  // 地形：视图没变就直接贴缓存（省掉每帧重采样）
+  ensureTerScreen();
+  ctx.drawImage(terScreen,0,0);
+
+  var scale=Math.min(w,h)*0.92*view.zoom;
+  // 食物
+  foods.forEach(function(fd){
+    var p=toScreen(fd.u,fd.v);
+    ctx.beginPath(); ctx.arc(p[0],p[1],Math.max(3,4.5*view.zoom*0.5),0,6.283);
+    ctx.fillStyle='#e8a33d'; ctx.fill();
+  });
+  // 卵
+  eggs.forEach(function(e){
+    var p=toScreen(e.u,e.v);
+    if(e.spider){
+      var r=4.2;                                   // 蜘蛛卵：暗红方块 + 亮边
+      ctx.fillStyle='#8f3b39';
+      ctx.fillRect(p[0]-r,p[1]-r,r*2,r*2);
+      ctx.strokeStyle='rgba(255,178,170,.95)'; ctx.lineWidth=1.4;
+      ctx.strokeRect(p[0]-r,p[1]-r,r*2,r*2);
+      ctx.fillStyle='rgba(255,220,215,.9)';        // 中间一个小点，好认
+      ctx.fillRect(p[0]-1,p[1]-1,2,2);
+    }else{
+      ctx.beginPath(); ctx.arc(p[0],p[1],2.8,0,6.283);   // 果蝇卵：米白小圆
+      ctx.fillStyle='#f5f0e2'; ctx.fill();
+      ctx.strokeStyle='rgba(160,150,120,.85)'; ctx.lineWidth=1; ctx.stroke();
+    }
+  });
+  // 捕蝇草（红色夹子）
+  for(var tq=0; tq<traps.length; tq++){
+    var tt=traps[tq], ps0=toScreen(tt.u,tt.v);
+    var rr=Math.max(5, 7*view.zoom*0.6);
+    var openMode = tt.closedT<=0;
+    ctx.save();
+    ctx.translate(ps0[0], ps0[1]);
+    ctx.fillStyle = openMode?'#3d6b32':'#7a2b2b';
+    ctx.beginPath(); ctx.arc(0,0,rr*0.75,0,6.283); ctx.fill();
+    // 两片夹子
+    ctx.strokeStyle = openMode?'#9cd07a':'#d15a5a'; ctx.lineWidth=2;
+    ctx.beginPath();
+    if(openMode){
+      ctx.moveTo(0,0); ctx.lineTo(-rr, -rr*0.9);
+      ctx.moveTo(0,0); ctx.lineTo( rr, -rr*0.9);
+    } else {
+      ctx.moveTo(-rr, -rr*0.2); ctx.lineTo(rr, -rr*0.2);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 青蛙（绿色圆 + 两只眼）
+  for(var fk=0; fk<frogs.length; fk++){
+    var frg=frogs[fk];
+    // —— 移动（放在渲染里，保证一定执行）——
+    (function(fm){
+      if(paused){ fm._acc=0; return; }        // 暂停：位置冻结，恢复后不突跳
+      // 按时间节流：每 0.1 秒挪一次（之前每帧都挪，所以快得离谱）
+      fm._acc = (fm._acc||0) + 1/60;
+      if(fm._acc < 0.1) return;
+      fm._acc -= 0.1;
+      var iw = hAt(fm.u,fm.v) < WATER;
+      fm.dir += (Math.random()-0.5)*0.5;
+      var ssp = (iw?0.0020:0.0010)*(0.6+Math.min(1,(fm.fJump||0)/25));   // ≈0.02 / 0.01 单位每秒
+      var nU=fm.u+Math.cos(fm.dir)*ssp, nV=fm.v+Math.sin(fm.dir)*ssp;
+      if(isNearWater(nU,nV)){ fm.u=nU; fm.v=nV; fm.hops=(fm.hops||0)+1; }
+      else { fm.dir += Math.PI; }
+      fm.u=Math.max(0.04,Math.min(0.96,fm.u));
+      fm.v=Math.max(0.04,Math.min(0.96,fm.v));
+      // 兜底：万一在旱地（边界夹住等），朝最近的水边挪回来
+      if(!isNearWater(fm.u,fm.v)){
+        fm.stray=(fm.stray||0)+1;
+        var eg2=waterEdgeSpot();
+        var k = fm.stray>3 ? 1 : 0.25;      // 迷路太久就直接传回去
+        fm.u += (eg2.u-fm.u)*k;
+        fm.v += (eg2.v-fm.v)*k;
+      }else{
+        fm.stray=0;
+      }
+    })(frg);
+    var pfr=toScreen(frg.u,frg.v);
+    var rf=Math.max(6, 10*view.zoom*0.6);
+    ctx.beginPath(); ctx.ellipse(pfr[0], pfr[1], rf, rf*0.78, 0, 0, 6.283);
+    ctx.fillStyle='#4a8f3c'; ctx.fill();
+    ctx.strokeStyle='rgba(150,220,130,.8)'; ctx.lineWidth=1.2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(pfr[0]-rf*0.45, pfr[1]-rf*0.55, rf*0.24, 0, 6.283);
+    ctx.arc(pfr[0]+rf*0.45, pfr[1]-rf*0.55, rf*0.24, 0, 6.283);
+    ctx.fillStyle='#e8f5c8'; ctx.fill();
+    // 弹舌
+    if(frg.tongueT>0){
+      ctx.beginPath(); ctx.moveTo(pfr[0], pfr[1]);
+      ctx.lineTo(pfr[0]+Math.cos(frg.dir)*rf*2.2, pfr[1]-Math.sin(frg.dir)*rf*2.2);
+      ctx.strokeStyle='#f2708a'; ctx.lineWidth=2; ctx.stroke();
+    }
+    ctx.font='9px system-ui'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(200,255,190,.9)';
+    ctx.fillText('F'+frg.id, pfr[0], pfr[1]-rf-4);
+  }
+
+  // 蜘蛛（✕ 符号 + 编号 P1/P2…）
+  ctx.font='9px system-ui';
+  ctx.textAlign='center';
+  for(var pj=0; pj<preds.length; pj++){
+    var pp=preds[pj];
+    var s=toScreen(pp.u,pp.v), r=Math.max(5,9*view.zoom*0.6);
+    var isSelP=(pp===selPred);
+    ctx.strokeStyle='#c0504d'; ctx.lineWidth=isSelP?2.6:2;
+    ctx.beginPath(); ctx.moveTo(s[0]-r,s[1]-r); ctx.lineTo(s[0]+r,s[1]+r);
+    ctx.moveTo(s[0]+r,s[1]-r); ctx.lineTo(s[0]-r,s[1]+r); ctx.stroke();
+    ctx.beginPath(); ctx.arc(s[0],s[1],r*0.45,0,6.283);
+    ctx.fillStyle='rgba(192,80,77,.35)'; ctx.fill();
+    ctx.fillStyle='rgba(255,190,185,.9)';
+    ctx.fillText('P'+pp.id, s[0], s[1]-r-4);
+    if(isSelP){
+      ctx.beginPath(); ctx.arc(s[0],s[1],r+7,0,6.283);
+      ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.5; ctx.stroke();
+    }
+  }
+  // 果蝇（圆点 + 编号）：字体在循环外设一次，省开销
+  ctx.font='9px system-ui';
+  ctx.textAlign='center';
+  for(var fi2=0; fi2<flies.length; fi2++){
+    var ff=flies[fi2];
+    var p2=toScreen(ff.u,ff.v);
+    var sel2=(ff===selected);
+    var r2=sel2?6:4;
+    ctx.beginPath(); ctx.arc(p2[0],p2[1],r2,0,6.283);
+    ctx.fillStyle = ff.state==='逃跑'?'#f87171'
+                  : ff.state==='交配'?'#c084fc'
+                  : ff.state==='求偶'?'#22d3ee'
+                  : ff.state==='进食'?'#8ee07a'
+                  : '#7c8cff';
+    ctx.fill();
+    if(sel2){ ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke(); }
+    ctx.fillStyle='rgba(230,238,250,.85)';
+    ctx.fillText('#'+ff.id, p2[0], p2[1]-r2-4);
+  }
+  // 选中圈
+  if(selected){
+    var ps=toScreen(selected.u,selected.v);
+    ctx.beginPath(); ctx.arc(ps[0],ps[1],14,0,6.283);
+    ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+  // HUD
+  $('#n-fly').textContent=flies.length;
+  var eggF=0, eggP=0;
+  for(var ei=0; ei<eggs.length; ei++){ if(eggs[ei].spider) eggP++; else eggF++; }
+  var eF=document.getElementById('n-egg'), eP=document.getElementById('n-eggp');
+  if(eF) eF.textContent=eggF;
+  if(eP) eP.textContent=eggP;
+  // 数据面板（果蝇/蜘蛛分开，直接铺开显示）
+  var eSum=0; for(var q1=0;q1<flies.length;q1++) eSum+=flies[q1].energy;
+  var pSum=0; for(var q2=0;q2<preds.length;q2++) pSum+=preds[q2].energy;
+  var setT=function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+  setT('avg-e', flies.length?Math.round(eSum/flies.length):0);
+  setT('avg-p', preds.length?Math.round(pSum/preds.length):0);
+  setT('gen', 'F'+gen);
+  setT('gen-p', 'F'+predGen);
+  setT('mate-f', mates);
+  setT('mate-p', matesP);
+  setT('eat-p', spiderKills);
+  setT('eat-f', frogKills());
+  setT('eat-t', trapKills());
+  setT('n-eaten', spiderKills+frogKills()+trapKills());
+  // 图例里的青蛙/捕蝇草只在开启时显示
+  var lf=document.querySelectorAll('.leg-frog'), lt=document.querySelectorAll('.leg-trap');
+  for(var li=0;li<lf.length;li++) lf[li].style.display = P.frogOn?'block':'none';
+  for(var lj=0;lj<lt.length;lj++) lt[lj].style.display = P.venusOn?'block':'none';
+  $('#n-food').textContent=foods.length;
+  var eFr=document.getElementById('n-frog'); if(eFr) eFr.textContent=frogs.length;
+  var eTr=document.getElementById('n-trap'); if(eTr) eTr.textContent=traps.length;
+  var nPred=document.getElementById('n-pred2');
+  if(nPred) nPred.textContent=preds.length;
+  var sum=0; flies.forEach(function(f){sum+=f.energy;});
+  $('#avg-e').textContent=flies.length?Math.round(sum/flies.length):0;
+  drawBrain();
+  pushChart(1/60);
+  if(chartOn) drawChart();
+  if(energyOn) drawEnergyChart();
+}
+function drawSpikes(f){ drawSpikesObj({s:f.hs,c:f.hc,m:f.hm}); }
+function drawAvCurve(f){
+  var cv2=document.getElementById('avCv'); if(!cv2 || !f.avHist) return;
+  var g=cv2.getContext('2d'), W=cv2.width, H=cv2.height;
+  g.clearRect(0,0,W,H);
+  // 网格
+  g.strokeStyle='rgba(120,130,150,.16)'; g.lineWidth=1;
+  [0.25,0.5,0.75].forEach(function(y){
+    g.beginPath(); g.moveTo(0,H*y); g.lineTo(W,H*y); g.stroke();
+  });
+  var n=f.avHist.length, step=W/n;
+  // 面积
+  g.beginPath();
+  g.moveTo(0,H);
+  for(var i=0;i<n;i++) g.lineTo(i*step, H-H*Math.min(1,f.avHist[i]));
+  g.lineTo(W,H); g.closePath();
+  g.fillStyle='rgba(244,114,182,.16)'; g.fill();
+  // 折线
+  g.beginPath();
+  for(var j=0;j<n;j++){
+    var x=j*step, y=H-H*Math.min(1,f.avHist[j]);
+    if(j===0) g.moveTo(x,y); else g.lineTo(x,y);
+  }
+  g.strokeStyle='#f472b6'; g.lineWidth=1.6; g.stroke();
+  // 当前值
+  g.fillStyle='rgba(232,236,245,.9)'; g.font='9px system-ui'; g.textAlign='right';
+  g.fillText(Math.round(f.aversion*100)+'%', W-2, 9);
+  g.textAlign='left';
+  g.fillStyle='rgba(136,145,166,.85)';
+  g.fillText('-30s', 2, H-3);
+}
+function spiderSpread(){
+  if(preds.length<2) return '—';
+  var tot=0,n=0;
+  for(var i=0;i<preds.length;i++){
+    var best=9e9;
+    for(var j=0;j<preds.length;j++){
+      if(i===j) continue;
+      var d=Math.hypot(preds[i].u-preds[j].u, preds[i].v-preds[j].v);
+      if(d<best) best=d;
+    }
+    tot+=best; n++;
+  }
+  return (tot/n).toFixed(3);
+}
+function frogKills(){ var t=0; for(var i=0;i<frogs.length;i++) t+=frogs[i].kills||0; return t; }
+function trapKills(){ var t=0; for(var i=0;i<traps.length;i++) t+=traps[i].caught||0; return t; }
+function stateCount(){
+  var m={};
+  for(var i=0;i<flies.length;i++){ var k=flies[i].state||'?'; m[k]=(m[k]||0)+1; }
+  var out=[]; for(var k2 in m) out.push(k2+':'+m[k2]);
+  return out.join(',');
+}
+function avgEnergy(){
+  if(!flies.length) return 0;
+  var t=0; for(var i=0;i<flies.length;i++) t+=flies[i].energy;
+  return t/flies.length;
+}
+/* ============ 种群曲线（每 2 秒采一点，共 5 分钟） ============ */
+var chartOn=false, energyOn=false, chHist=[], chAcc=0;
+function pushChart(dt){
+  chAcc+=dt;
+  if(chAcc<2) return;
+  chAcc-=2;
+  var eggF=0, eggP=0;
+  for(var ei=0; ei<eggs.length; ei++){ if(eggs[ei].spider) eggP++; else eggF++; }
+  chHist.push({f:flies.length, p:preds.length, ef:eggF, ep:eggP, o:foods.length,
+                fe:eAvgNow(), pe:pAvgNow()});
+  if(chHist.length>150) chHist.shift();
+}
+function drawLegendIcons(){
+  var c=document.getElementById('legFrogCv');
+  if(c){
+    var g=c.getContext('2d'); g.clearRect(0,0,20,20);
+    g.beginPath(); g.ellipse(10,12,6.5,5,0,0,6.283);
+    g.fillStyle='#4a8f3c'; g.fill();
+    g.strokeStyle='rgba(150,220,130,.85)'; g.lineWidth=1.2; g.stroke();
+    g.beginPath(); g.arc(7,6.5,1.7,0,6.283); g.arc(13,6.5,1.7,0,6.283);
+    g.fillStyle='#e8f5c8'; g.fill();
+  }
+  var c2=document.getElementById('legTrapCv');
+  if(c2){
+    var g2=c2.getContext('2d'); g2.clearRect(0,0,20,20);
+    g2.beginPath(); g2.arc(10,12,5,0,6.283);
+    g2.fillStyle='#3d6b32'; g2.fill();
+    g2.strokeStyle='#9cd07a'; g2.lineWidth=2; g2.lineCap='round';
+    g2.beginPath(); g2.moveTo(10,12); g2.lineTo(4.5,5.5);
+    g2.moveTo(10,12); g2.lineTo(15.5,5.5); g2.stroke();
+  }
+}
+function drawChart(){
+  var cv=document.getElementById('chartCv'); if(!cv) return;
+  var g=cv.getContext('2d'), W=cv.width, H=cv.height, pad=6;
+  g.clearRect(0,0,W,H);
+  if(!chHist.length) return;
+  var maxV=1;
+  for(var i=0;i<chHist.length;i++){
+    maxV=Math.max(maxV, chHist[i].f, chHist[i].p, chHist[i].ef, chHist[i].ep, chHist[i].o);
+  }
+  maxV=Math.ceil(maxV*1.15);
+  // 网格
+  g.strokeStyle='rgba(120,130,150,.14)'; g.lineWidth=1;
+  for(var k=1;k<=3;k++){
+    var y=pad+(H-pad*2)*k/4;
+    g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke();
+  }
+  var n=chHist.length, stepX=(W)/(Math.max(1,n-1));
+  function line(key,color){
+    g.beginPath();
+    for(var j=0;j<n;j++){
+      var val=chHist[j][key];
+      var x=j*stepX, y=pad+(H-pad*2)*(1-val/maxV);
+      if(j===0) g.moveTo(x,y); else g.lineTo(x,y);
+    }
+    g.strokeStyle=color; g.lineWidth=1.6; g.stroke();
+  }
+  line('o','#e8a33d');   // 食物
+  line('ef','#e9e3d0');  // 果蝇卵
+  line('ep','#b06a6a');  // 蜘蛛卵
+  line('p','#c0504d');   // 蜘蛛
+  line('f','#7c8cff');   // 果蝇
+  // 峰值标注
+  g.font='9px system-ui'; g.textAlign='right'; g.fillStyle='rgba(150,160,180,.8)';
+  g.fillText('max '+maxV, W-2, 10);
+  g.textAlign='left';
+  g.fillText('-5min', 2, H-2);
+}
+function drawEnergyChart(){
+  var cv=document.getElementById('chartCv2'); if(!cv) return;
+  var g=cv.getContext('2d'), W=cv.width, H=cv.height, pad=6;
+  g.clearRect(0,0,W,H);
+  if(!chHist.length) return;
+  // 0~175 固定刻度
+  g.strokeStyle='rgba(120,130,150,.14)'; g.lineWidth=1;
+  [0.25,0.5,0.75,1].forEach(function(r){
+    var y=pad+(H-pad*2)*(1-r);
+    g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke();
+  });
+  var n=chHist.length, stepX=W/Math.max(1,n-1);
+  function ln(key,color){
+    g.beginPath();
+    for(var j=0;j<n;j++){
+      var val=Math.min(1,(chHist[j][key]||0)/175);
+      var x=j*stepX, y=pad+(H-pad*2)*(1-val);
+      if(j===0) g.moveTo(x,y); else g.lineTo(x,y);
+    }
+    g.strokeStyle=color; g.lineWidth=1.8; g.stroke();
+  }
+  ln('fe','#9aa8ff');
+  ln('pe','#ff9b9b');
+  g.font='9px system-ui'; g.textAlign='right'; g.fillStyle='rgba(150,160,180,.75)';
+  g.fillText('175', W-2, 10);
+  g.fillText('0', W-2, H-2);
+  g.textAlign='left'; g.fillText('-5min', 2, H-2);
+}
+function drawSpikesObj(h){
+  if(!h) return;
+  var cols={s:[139,124,246], c:[120,140,240], m:[110,215,150]};
+  [['spk-s',h.s,cols.s],['spk-c',h.c,cols.c],['spk-m',h.m,cols.m]].forEach(function(cfg){
+    var cv2=document.getElementById(cfg[0]); if(!cv2) return;
+    var g=cv2.getContext('2d'); var W=cv2.width, H=cv2.height;
+    var arr=cfg[1]; if(!arr) return;
+    g.clearRect(0,0,W,H);
+    var n=arr.length, cw=W/n;
+    // 行内自适应归一化：把这一行的变化范围拉开，亮暗才明显
+    for(var i=0;i<n;i++){
+      var vv=Math.max(0,Math.min(1,arr[i]));
+      var a = vv<0.14 ? 0.03 : (0.22+0.78*Math.pow((vv-0.14)/0.86,0.6));
+      g.fillStyle='rgba('+cfg[2].join(',')+','+a.toFixed(3)+')';
+      g.fillRect(i*cw, 0, Math.max(1,cw-1), H);
+    }
+  });
+}
+function drawBrain(){
+  var panel=document.getElementById('brain');
+  var rows=panel.querySelectorAll('.brow');
+  // 行顺序：0编号 1状态 2能量 3年龄 4剩余寿命 5捕食次数 6厌恶性 7躲避半径
+  //        8最近蜘蛛 9最近食物 10MN_walk 11MN_feed 12感觉/驱动
+  // kind: 'fly' | 'pred' | 'frog'
+  function showRows(kind){
+    var fl=panel.querySelectorAll('.flyonly');
+    for(var i=0;i<fl.length;i++){
+      var el=fl[i], isGroup=el.classList.contains('bgroup');
+      el.style.display = (kind==='fly') ? (isGroup?'block':'flex') : 'none';
+    }
+    var pr=panel.querySelectorAll('.predonly');
+    for(var j=0;j<pr.length;j++) pr[j].style.display = (kind==='pred')?'flex':'none';
+    var fg=panel.querySelectorAll('.frogonly');
+    for(var k=0;k<fg.length;k++) fg[k].style.display = (kind==='frog')?'flex':'none';
+    var sb=document.getElementById('spikeBox');
+    if(sb) sb.style.display = 'block';
+  }
+  var set=function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+
+  if(selFrog && frogs.indexOf(selFrog)>=0){
+    var fg=selFrog;
+    showRows('frog');
+    document.getElementById('bTitle').textContent='🐸 青蛙档案';
+    var rmax=0; if(fg.br){ for(var ri=0;ri<fg.br.n;ri++) if(fg.br.r[ri]>rmax) rmax=fg.br.r[ri]; }
+    set('bInfo','选中 F'+fg.id);
+    set('o-id','F'+fg.id+' / F'+(fg.gen||1));
+    set('o-state', fg.tongueT>0?'弹舌中':(fg.fStill>fg.fTongue?'静伏':'巡游'));
+    set('o-energy', (fg.cd>0? Math.round(fg.cd)+' s' : '可弹舌'));   // 这一行当"弹舌冷却"用
+    set('o-age', '—');
+    set('o-life', '—');
+    set('o-fr-pos', 'x '+fg.u.toFixed(2)+' · y '+fg.v.toFixed(2));
+    set('o-fr-where', (hAt(fg.u,fg.v)<WATER ? '在水中' : '在岸上') + ' · 已移动 '+(fg.hops||0)+' 次');
+    // 学习/行为
+    set('o-fr-1', Math.round(fg.fTongue||0)+' / '+Math.round(fg.fStill||0)+' / '+Math.round(fg.fAlert||0)+' Hz');
+    set('o-fr-2', Math.round((fg.fTongue||0))+' / '+Math.round(fg.fJump||0)+' Hz');
+    var nearF2=9e9;
+    for(var fi2=0; fi2<flies.length; fi2++){
+      var dd2=Math.hypot(flies[fi2].u-fg.u, flies[fi2].v-fg.v);
+      if(dd2<nearF2) nearF2=dd2;
+    }
+    set('o-fr-3', (flies.length?Math.round(nearF2*1000):'—')+' / '+Math.round((fg.seePrey||0)*100)+'%');
+    set('o-fr-4', (fg.kills||0)+' 只');
+    // 脑活动（在面板里按 100ms 采样，保证一定有数据）
+    if(fg.br){
+      feedFrogInputs(fg);
+      for(var _k=0;_k<5;_k++) frStep(fg.br, 0.02);
+      readFrogOut(fg);
+      var nowS=performance.now();
+      if(!fg._lastSamp || nowS-fg._lastSamp>=100){
+        fg._lastSamp=nowS;
+        var ss=0,nss=0,sc=0,ncc=0,sm=0,nmm=0;
+        for(var bs=0; bs<fg.br.n; bs++){
+          var cls=FR_COL[bs], rvs=Math.min(1, fg.br.r[bs]/(cls==='Sensory'?26:(cls==='Motor'?26:30)));
+          if(cls==='Sensory'){ ss+=rvs; nss++; }
+          else if(cls==='Motor'){ sm+=rvs; nmm++; }
+          else { sc+=rvs; ncc++; }
+        }
+        if(!fg.fHist) fg.fHist={s:[],c:[],m:[]};
+        fg.fHist.s.push(nss?ss/nss:0); fg.fHist.c.push(ncc?sc/ncc:0); fg.fHist.m.push(nmm?sm/nmm:0);
+        if(fg.fHist.s.length>48){ fg.fHist.s.shift(); fg.fHist.c.shift(); fg.fHist.m.shift(); }
+      }
+      var sS2=0,nS2=0,sC2=0,nC2=0,sM2=0,nM2=0;
+      for(var bj=0;bj<fg.br.n;bj++){
+        var cl2=FR_COL[bj], rv2=fg.br.r[bj];
+        if(cl2==='Sensory'){ sS2+=rv2; nS2++; }
+        else if(cl2==='Motor'){ sM2+=rv2; nM2++; }
+        else { sC2+=rv2; nC2++; }
+      }
+      set('o-rate', Math.round(nS2?sS2/nS2:0)+' / '+Math.round(nC2?sC2/nC2:0)+' / '+Math.round(nM2?sM2/nM2:0)+' Hz');
+      var hh2=fg.fHist, peak2=0, avg2=0;
+      if(hh2 && hh2.s.length){
+        for(var q3=0;q3<hh2.s.length;q3++){
+          peak2=Math.max(peak2,hh2.s[q3],hh2.c[q3],hh2.m[q3]);
+          avg2+=(hh2.s[q3]+hh2.c[q3]+hh2.m[q3])/3;
+        }
+        avg2/=hh2.s.length;
+        function seg2(arr,st,len){var t=0,n=0;for(var i=arr.length-st-len;i<arr.length-st;i++){if(i>=0){t+=arr[i];n++;}}return n?t/n:0;}
+        var nowB=(seg2(hh2.s,0,8)+seg2(hh2.c,0,8)+seg2(hh2.m,0,8))/3;
+        var oldB=(seg2(hh2.s,8,8)+seg2(hh2.c,8,8)+seg2(hh2.m,8,8))/3;
+        var dB=nowB-oldB;
+        set('o-trend', dB>0.03?'↑ 上升':(dB<-0.03?'↓ 下降':'→ 平稳'));
+      }
+      set('o-peak', Math.round(peak2*60)+' / '+Math.round(avg2*60)+' Hz');
+      drawSpikesObj(hh2);
+    }
+    return;
+  }
+
+  if(selPred && preds.indexOf(selPred)>=0){
+    var p=selPred;
+    showRows('pred');
+    document.getElementById('bTitle').textContent='🕷 蜘蛛档案';
+    set('bInfo','选中 P'+p.id);
+    var remain=Math.max(0, (p.lifeMax||P.pLife)-p.age);
+    set('o-id','P'+p.id+' / F'+(p.gen||1));
+    var stTxt;
+    if((p.satT||0)>0) stTxt='饱腹中 '+Math.round(p.satT)+' s';
+    else if(p.cd>0 && p.cd > P.pMateCD*0.75) stTxt='刚交配/产卵（冷却 '+Math.round(p.cd)+' s）';
+    else if(p.cd<=0 && p.energy>P.pBreedE) stTxt='求偶中（找同伴）';
+    else if(p.energy<P.pBreedE*0.8) stTxt='觅食中（找果蝇）';
+    else stTxt='追猎/巡游';
+    set('o-state', stTxt);
+    set('o-sp-lay', (p.cd>0?Math.round(p.cd)+' s':'可交配')+' / '+(p.layCount||0)+' 次');
+    set('o-energy', Math.round(p.energy)+' / 160');
+    set('o-age', Math.round(p.age)+' s');
+    set('o-life', Math.round(remain)+' s / 共'+P.pLife+'s');
+    set('o-kill', (p.kill||0)+' 只');
+    // ---- 学习 ----
+    set('o-sp-hunt', Math.round(p.spHunt||0)+' / '+Math.round(p.spAmbush||0)+' / '+Math.round(p.spAvoid||0)+' Hz');
+    set('o-sp-mn', Math.round(p.spWalk||0)+' / '+Math.round(p.spStrike||0)+' Hz');
+    var nearF=9e9;
+    for(var fi=0;fi<flies.length;fi++){
+      var dd=Math.hypot(flies[fi].u-p.u, flies[fi].v-p.v);
+      if(dd<nearF) nearF=dd;
+    }
+    set('o-sp-prey', (flies.length?Math.round(nearF*1000):'—')+' / '+Math.round((p.seePrey||0)*100)+'%');
+    // ---- 脑活动 ----
+    if(p.br){
+      var sS=0,nS=0,sC=0,nC=0,sM=0,nM=0, mx=0;
+      for(var bi=0;bi<p.br.n;bi++){
+        var cl=SP_COL[bi], rv=p.br.r[bi];
+        if(rv>mx) mx=rv;
+        var nv=Math.min(1, rv/(cl==='Sensory'?35:(cl==='Motor'?45:55)));
+        if(cl==='Sensory'){ sS+=rv; nS++; }
+        else if(cl==='Motor'){ sM+=rv; nM++; }
+        else { sC+=rv; nC++; }
+      }
+      set('o-rate', Math.round(nS?sS/nS:0)+' / '+Math.round(nC?sC/nC:0)+' / '+Math.round(nM?sM/nM:0)+' Hz');
+      var hh=p.spHist;
+      var peak=0, avg=0;
+      if(hh && hh.s.length){
+        for(var q1=0;q1<hh.s.length;q1++){
+          peak=Math.max(peak,hh.s[q1],hh.c[q1],hh.m[q1]);
+          avg+= (hh.s[q1]+hh.c[q1]+hh.m[q1])/3;
+        }
+        avg/=hh.s.length;
+      }
+      set('o-peak', Math.round(peak*60)+' / '+Math.round(avg*60)+' Hz');
+      // 趋势
+      if(hh && hh.s.length>=16){
+        function seg(arr,st,len){var t=0,n=0;for(var i=arr.length-st-len;i<arr.length-st;i++){if(i>=0){t+=arr[i];n++;}}return n?t/n:0;}
+        var nowA=(seg(hh.s,0,8)+seg(hh.c,0,8)+seg(hh.m,0,8))/3;
+        var oldA=(seg(hh.s,8,8)+seg(hh.c,8,8)+seg(hh.m,8,8))/3;
+        var dA=nowA-oldA;
+        set('o-trend', dA>0.03?'↑ 上升':(dA<-0.03?'↓ 下降':'→ 平稳'));
+      }
+      drawSpikesObj(hh);
+    }
+    return;
+  }
+
+  if(!selected){
+    // 选中的个体消失了：面板保持打开，显示占位信息
+    document.getElementById('bTitle').textContent='🪰 果蝇档案';
+    set('bInfo','选中个体已消失');
+    set('o-id','—'); set('o-state','已死亡/被捕获'); set('o-energy','—');
+    set('o-life','—'); set('o-rate','—'); set('o-peak','—'); set('o-trend','—');
+    return;
+  }
+  var f=selected;
+  showRows('fly');
+  document.getElementById('bTitle').textContent='🪰 果蝇档案';
+  var nearP=1, nearF=1;
+  preds.forEach(function(p2){ nearP=Math.min(nearP, Math.hypot(p2.u-f.u,p2.v-f.v)); });
+  foods.forEach(function(fd){ nearF=Math.min(nearF, Math.hypot(fd.u-f.u,fd.v-f.v)); });
+  set('bInfo','选中 #'+f.id);
+  set('o-id','#'+f.id+' / F'+f.gen);
+  set('o-state', f.state);
+  set('o-energy', Math.round(f.energy)+' / 175');
+  set('o-age', Math.round(f.age)+' s');
+  var lm=f.lifeMax||P.life;
+  set('o-life', Math.round(Math.max(0,lm-f.age))+' s / 共'+Math.round(lm)+'s');
+  var fv=P.forget*100*f.aversion;
+  set('o-av', Math.round(f.aversion*100)+'%'+(f.aversion>0.005?('  ↓'+fv.toFixed(2)+'%/s'):''));
+  set('o-radius',(0.02+0.05*f.aversion).toFixed(3));
+  var thN=nearestThreat(f);
+  set('o-dist', (thN.d<9e8?Math.round(thN.d*1000)+'（'+thN.kind+'）':'—')+' / '+(foods.length?Math.round(nearF*1000):'—'));
+  // 三列放电率（Hz）：每格 100ms → 比例×100 ≈ 每秒放电次数
+  function avgA(a0){ var t=0; for(var i=0;i<a0.length;i++) t+=a0[i]; return t/(a0.length||1); }
+  function maxA(a0){ var t=0; for(var i=0;i<a0.length;i++) if(a0[i]>t) t=a0[i]; return t; }
+  var rS=avgA(f.hs)*100, rC=avgA(f.hc)*100, rM=avgA(f.hm)*100;
+  set('o-rate', rS.toFixed(0)+' / '+rC.toFixed(0)+' / '+rM.toFixed(0)+' Hz');
+  var peak=Math.max(maxA(f.hs),maxA(f.hc),maxA(f.hm))*100;
+  var avg3=(rS+rC+rM)/3;
+  set('o-peak', peak.toFixed(0)+' / '+avg3.toFixed(0)+' Hz');
+  // 趋势：最近 8 格 vs 再早 8 格
+  function segAvg(arr, start, len){
+    var t=0,n=0;
+    for(var i=arr.length-start-len;i<arr.length-start;i++){ if(i>=0){t+=arr[i];n++;} }
+    return n?t/n:0;
+  }
+  var nowA=(segAvg(f.hs,0,8)+segAvg(f.hc,0,8)+segAvg(f.hm,0,8))/3;
+  var oldA=(segAvg(f.hs,8,8)+segAvg(f.hc,8,8)+segAvg(f.hm,8,8))/3;
+  var dd=nowA-oldA;
+  set('o-trend', dd>0.03?'↑ 上升':(dd<-0.03?'↓ 下降':'→ 平稳'));
+  set('o-chase', (f.chased||0)+' 次 / '+(f.fleeTime||0).toFixed(1)+' s');
+  var lr=(f.avRate||0)*100;
+  set('o-learn', (lr>=0?'+':'')+lr.toFixed(2)+'% /s');
+  var mnEl=document.getElementById('o-mn');
+  if(mnEl) mnEl.textContent=(f.mnWalk||0).toFixed(1)+' / '+(f.mnFeed||0).toFixed(1)+' Hz';
+  set('o-drive', Math.round((f.seeF||0)*100)+'% / '+Math.round((f.seeP||0)*100)+'%');
+  drawSpikes(f);
+  drawAvCurve(f);
+}
+
+/* ---------------- 主循环 ---------------- */
+if(/[?&]eggdemo=1/.test(location.search)){      // 观察用：同时放两种卵
+  setTimeout(function(){
+    for(var i=0;i<3;i++){ var a=freeSpot(); eggs.push({u:a.u,v:a.v,t:0,gen:1}); }
+    for(var j=0;j<3;j++){ var b=freeSpot(); eggs.push({u:b.u,v:b.v,t:0,gen:1,spider:true}); }
+  }, 600);
+}
+if(/[?&]selftest=2/.test(location.search)){          // 濒危测试：3 果蝇 + 1 蜘蛛
+  P.initN=3; P.pInit=1; reset();
+}
+if(/[?&]selftest=[1234]/.test(location.search)){
+  setTimeout(function(){
+    var err=null, t0=performance.now();
+    var LONG = /selftest=[34]/.test(location.search);
+    var VERY = /selftest=4/.test(location.search);
+    var NSTEP = VERY ? 24000 : (LONG ? 12000 : 3000);   // 4 = 超长跑 1200 秒
+    var snap=[];
+    try{
+      for(var i=0;i<NSTEP;i++){
+        step(0.05, true);
+        if(LONG && (i+1)%2000===0){
+          snap.push('t='+Math.round((i+1)*0.05)+'s 果蝇'+flies.length+' 卵'+eggs.length+
+                    ' 蜘蛛'+preds.length+' 食'+foods.length+' 吃'+eaten+' 交'+mates+' 能'+Math.round(avgEnergy())+
+                    ' 态['+stateCount()+']'+
+                    ' 蛙'+frogs.length+'/'+frogKills()+' 草'+traps.length+'/'+trapKills()+' 邻'+spiderSpread());
+        }
+      }
+    }catch(e){ err=e.message; }
+    var predN=preds.length, eggN=eggs.length, flyN=flies.length;
+    var box=document.getElementById('dbgBox');
+    if(box){
+      box.style.display='block';
+      box.textContent='自检: '+(err?('❌ '+err):'✅ 无异常')+
+        ' | 模拟'+(NSTEP*0.05)+'s 用时'+(performance.now()-t0).toFixed(0)+'ms'+
+        ' | 果蝇'+flyN+' 卵'+eggN+' 蜘蛛'+predN+' 代'+gen+
+        (snap.length? '\n'+snap.join('\n') : '');
+    }
+  }, 1500);
+}
+var last=performance.now();
+var DBG=/[?&]dbg=1/.test(location.search), slowFrames=0, maxMs=0, slowRun=0;
+var FAST=/[?&]simfast=1/.test(location.search);
+function loop(now){
+  var dt=Math.min((now-last)/1000,0.05); last=now;
+  var t0=performance.now();
+  try{
+  if(!paused){
+    if(FAST){ for(var q=0;q<10;q++) step(0.05,true); }
+    else {
+      var stepsN = speedMul===1 ? 1 : Math.min(speedMul, 10);
+      for(var q2=0;q2<stepsN;q2++) step(dt, stepsN>1);
+    }
+  }
+  draw();
+  }catch(err){
+    if(window.__lastErr!==String(err)){ window.__lastErr=String(err);
+      console.error('模拟异常:',err);
+      var eb=document.getElementById('dbgBox');
+      if(eb){ eb.style.display='block'; eb.textContent='⚠ '+err.message; }
+    }
+  }
+  var frameMs=performance.now()-t0;
+  if(frameMs>45){ slowRun++; } else { slowRun=Math.max(0,slowRun-1); }
+  if(slowRun>25 && DPR>1.0){          // 持续慢 → 自动降分辨率
+    DPR=1.0; slowRun=0; resize();
+    if(typeof toast0==='function'){} 
+  }
+  if(DBG){
+    var ms=frameMs;
+    if(ms>maxMs) maxMs=ms;
+    if(ms>120) slowFrames++;
+    var bx=document.getElementById('dbgBox');
+    if(bx){
+      bx.style.display='block';
+      var heap=(performance.memory? (performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB':'—');
+      bx.textContent='帧 '+ms.toFixed(0)+'ms  最大 '+maxMs.toFixed(0)+'ms  超长帧 '+slowFrames+'  堆 '+heap+
+        '\n果蝇 '+flies.length+'  卵 '+eggs.length+'  蜘蛛 '+preds.length+
+        '\n缩放 '+(view.zoom).toFixed(1)+'  DPR '+DPR.toFixed(1);
+    }
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>数字果蝇 · 全脑实验台</title>
+<style>
+:root{
+  --bg:#0e1016; --card:#171a23; --card2:#1e2230; --line:#2a2f40;
+  --ink:#e8ecf5; --sub:#9aa3b8; --acc:#6366f1; --acc2:#a855f7;
+  --ok:#34d399; --warn:#f0b429; --bad:#f87171;
+}
+@media (prefers-color-scheme: light){
+  :root{--bg:#f5f6fa;--card:#fff;--card2:#f0f2f8;--line:#e3e6ef;--ink:#1b2030;--sub:#6b7385;}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif;
+  padding:18px 14px 60px;max-width:900px;margin:0 auto;line-height:1.6}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--sub);font-size:13px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 14px}
+.tabs button{background:var(--card);border:1px solid var(--line);color:var(--sub);
+  padding:8px 14px;border-radius:99px;font-size:14px;cursor:pointer}
+.tabs button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--card2);border-radius:12px;padding:12px}
+.stat .k{color:var(--sub);font-size:12px}
+.stat .v{font-size:24px;font-weight:600;margin-top:2px}
+.stat .v small{font-size:13px;color:var(--sub);font-weight:400}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--sub);font-weight:500;font-size:12.5px}
+tr{cursor:pointer}
+tr:hover td{background:var(--card2)}
+tr.sel td{background:rgba(99,102,241,.16)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;border-radius:99px}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.up{color:var(--ok)} .down{color:var(--bad)} .flat{color:var(--sub)}
+button.act{background:linear-gradient(135deg,var(--acc),var(--acc2));border:0;color:#fff;
+  padding:10px 16px;border-radius:12px;font-size:14px;cursor:pointer}
+button.act:disabled{opacity:.5}
+input[type=text]{background:var(--card2);border:1px solid var(--line);color:var(--ink);
+  padding:10px 12px;border-radius:12px;font-size:14px;width:100%}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hint{color:var(--sub);font-size:12.5px;margin-top:8px}
+svg text{fill:var(--sub);font-size:10px}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:99px;background:var(--card2);color:var(--sub)}
+</style>
+</head>
+<body>
+<h1>🧠 数字果蝇 · 全脑实验台</h1>
+<div class="sub">FlyWire v783 · 138,639 个神经元 · 稀疏 LIF 模型（Shiu et al. 2024 实现）· 纯 CPU</div>
+
+<div class="tabs" id="tabs"></div>
+<div id="view"></div>
+
+<script>
+var S = null, TAB = 'overview', PICK = null, POLL = null;
+var MN9 = 720575940660219265;
+
+function $(q){return document.querySelector(q);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function api(u,opt){return fetch(u,opt).then(function(r){return r.json();});}
+function fmt(v,d){return (v==null||isNaN(v))?'—':Number(v).toFixed(d==null?1:d);}
+
+var TABS=[['overview','概览'],['silence','沉默实验'],['compare','刺激对比'],['rank','敏感性排行'],['custom','自定义'],['update','更新'],['about','关于']];
+
+function tabsHTML(){
+  return TABS.map(function(t){
+    return '<button data-t="'+t[0]+'" class="'+(TAB===t[0]?'on':'')+'">'+t[1]+'</button>';
+  }).join('');
+}
+
+/* ---------- 概览 ---------- */
+function vOverview(){
+  var b=S.baseline||{};
+  var top=Object.entries(b.top||{}).slice(0,15);
+  var max=Math.max.apply(null,top.map(function(x){return x[1];}).concat([1]));
+  var h='<div class="card"><div class="grid">'+
+    '<div class="stat"><div class="k">MN9 放电率（伸喙运动神经元）</div><div class="v">'+fmt(b.mn9)+'<small> Hz</small></div></div>'+
+    '<div class="stat"><div class="k">被激活的神经元</div><div class="v">'+fmt(b.n_firing,0)+'<small> / 138,639</small></div></div>'+
+    '<div class="stat"><div class="k">每组试验次数</div><div class="v">'+(S.meta?S.meta.n_trials:'—')+'<small> 次</small></div></div>'+
+    '<div class="stat"><div class="k">刺激对象</div><div class="v">'+(S.meta?S.meta.sugar.length:'—')+'<small> 个糖感觉神经元</small></div></div>'+
+  '</div></div>';
+
+  h+='<div class="card"><div style="font-size:15px;font-weight:600;margin-bottom:10px">放电最猛的 15 个神经元</div>';
+  h+=top.map(function(x){
+    var w=(x[1]/max*100).toFixed(1);
+    var isMn9=(x[0]==MN9)?' <span class="tag" style="color:#a5b4fc">MN9</span>':'';
+    return '<div style="margin:7px 0"><div class="row" style="justify-content:space-between">'+
+      '<span class="mono">'+x[0]+isMn9+'</span><span>'+fmt(x[1])+' Hz</span></div>'+
+      '<div class="bar"><i style="width:'+w+'%;background:linear-gradient(90deg,#6366f1,#a855f7)"></i></div></div>';
+  }).join('');
+  h+='<div class="hint">只刺激 20 个糖神经元，全脑 13.9 万个里只有约 400 个被带动——这就是连接组的稀疏性。</div></div>';
+  $('#view').innerHTML=h;
+}
+
+/* ---------- 沉默实验 ---------- */
+function vSilence(){
+  var b=S.baseline||{}, list=(S.silences||[]);
+  var h='<div class="card"><div style="font-size:15px;font-weight:600;margin-bottom:6px">关掉一个神经元，看伸喙动作变不变</div>'+
+    '<div class="hint" style="margin:0 0 12px">背景：刺激 20 个糖感觉神经元（150 Hz），基线 MN9 = '+fmt(b.mn9)+' Hz。点表格里的神经元看结果。</div>'+
+    '<table><thead><tr><th>神经元</th><th>它自己</th><th>沉默后 MN9</th><th>变化</th></tr></thead><tbody>';
+  h+=list.map(function(r){
+    var cls=r.delta>2?'up':(r.delta<-2?'down':'flat');
+    var sign=r.delta>0?'+':'';
+    var hot=Math.abs(r.delta)>10?' style="font-weight:600"':'';
+    return '<tr data-id="'+r.id+'" class="'+(PICK===r.id?'sel':'')+'"'+hot+'><td class="mono">'+r.id+'</td>'+
+      '<td>'+fmt(r.own_rate)+' Hz</td><td>'+fmt(r.mn9)+' Hz</td>'+
+      '<td class="'+cls+'">'+sign+fmt(r.delta)+' Hz</td></tr>';
+  }).join('');
+  h+='</tbody></table><div class="hint">点一行 → 下面显示对比条</div></div>';
+
+  if(PICK){
+    var row=list.filter(function(r){return r.id==PICK;})[0];
+    var cur=POLLRES && POLLRES.id==PICK ? POLLRES : null;
+    if(row){
+      var d=row.delta, sign=d>0?'+':'';
+      h+='<div class="card"><div style="font-weight:600;margin-bottom:8px">神经元 <span class="mono">'+PICK+'</span> 被沉默</div>'+
+        '<div class="grid">'+
+        '<div class="stat"><div class="k">基线 MN9</div><div class="v">'+fmt(b.mn9)+'<small> Hz</small></div></div>'+
+        '<div class="stat"><div class="k">沉默后 MN9</div><div class="v">'+fmt(row.mn9)+'<small> Hz</small></div></div>'+
+        '<div class="stat"><div class="k">变化</div><div class="v '+(d>2?'up':(d<-2?'down':'flat'))+'">'+sign+fmt(d)+'<small> Hz</small></div></div>'+
+        '<div class="stat"><div class="k">被激活神经元</div><div class="v">'+row.n_firing+'<small> 个</small></div></div>'+
+        '</div>';
+      h+='<div style="margin-top:14px">';
+      h+=barPair('基线', b.mn9, '#6366f1');
+      h+=barPair('沉默后', row.mn9, d>2?'#34d399':(d<-2?'#f87171':'#f0b429'));
+      h+='</div>';
+      h+='<div class="hint">'+(d<-2?'关掉它，进食输出被压下去了 → 它在给糖反应"踩油门"。'
+        :(d>2?'关掉它，进食输出反而升高 → 它在踩刹车（抑制性）。':'几乎没影响 → 这条通路有冗余。'))+'</div>';
+      h+='<div class="row" style="margin-top:12px"><button class="act" id="lnk">看它的上下游连接</button></div>'+
+         '<div id="lnkbox"></div></div>';
+    }
+  }
+
+  h+='<div class="card"><div style="font-weight:600;margin-bottom:8px">自己点名：给一个 FlyWire ID 跑沉默实验</div>'+
+    '<div class="row"><input type="text" id="nid" placeholder="例如 720575940640589171" inputmode="numeric">'+
+    '<button class="act" id="go">排队跑</button></div>'+
+    '<div class="hint">一次试验约 1~2 分钟（本机 8 核 CPU，跑 1 次试验）。跑完的结果会存下来，下次直接看。</div>'+
+    '<div id="jobbox" style="margin-top:10px"></div></div>';
+  $('#view').innerHTML=h;
+
+  var lb=$('#lnk');
+  if(lb)lb.onclick=function(){ lb.disabled=true; $('#lnkbox').innerHTML='<div class="hint">正在查连接表…（约 10~20 秒）</div>'; pollLinks(PICK); };
+  $('#view').querySelectorAll('tr[data-id]').forEach(function(tr){
+    tr.onclick=function(){PICK=tr.dataset.id; vSilence();};
+  });
+  $('#go').onclick=function(){
+    var v=($('#nid').value||'').trim();
+    if(!/^[0-9]+$/.test(v)){alert('要 FlyWire 的数字 ID 喵');return;}
+    $('#go').disabled=true;
+    api('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:v,n:1})})
+      .then(function(r){
+        if(r.error){$('#jobbox').innerHTML='<div class="hint" style="color:var(--warn)">后台正忙（'+(r.id||'')+'），等它跑完再点喵</div>';$('#go').disabled=false;return;}
+        pollJob(v);
+      });
+  };
+}
+function barPair(label,val,color){
+  var b=S.baseline||{}; var max=Math.max(b.mn9||1,val||1)*1.25;
+  var w=Math.min(100,(val/max*100)).toFixed(1);
+  return '<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span class="sub">'+label+'</span><span>'+fmt(val)+' Hz</span></div>'+
+    '<div class="bar" style="height:12px"><i style="width:'+w+'%;background:'+color+'"></i></div></div>';
+}
+var POLLRES=null;
+function pollJob(id){
+  if(POLL)clearInterval(POLL);
+  POLL=setInterval(function(){
+    api('/api/job?id='+id).then(function(r){
+      var box=$('#jobbox'); if(!box)return;
+      if(r.state==='running'){
+        box.innerHTML='<div class="hint">正在跑… 已用 '+r.sec+' 秒（预计 60~150 秒）</div>';
+      }else if(r.state==='done'){
+        clearInterval(POLL); POLL=null; POLLRES=r.result;
+        box.innerHTML='<div class="hint" style="color:var(--ok)">跑完了：MN9 = '+fmt(r.result.mn9)+' Hz，激活 '+r.result.n_firing+' 个</div>';
+        var g=$('#go'); if(g)g.disabled=false;
+        load(true);
+      }else if(r.state==='failed'){
+        clearInterval(POLL); POLL=null;
+        box.innerHTML='<div class="hint" style="color:var(--bad)">跑失败了，检查 ID 对不对喵</div>';
+        var g2=$('#go'); if(g2)g2.disabled=false;
+      }
+    });
+  },3000);
+}
+
+function pollLinks(id){
+  var tries=0;
+  (function again(){
+    api('/api/links?id='+id).then(function(r){
+      var box=$('#lnkbox'); if(!box)return;
+      if(r.state==='running'){
+        tries++;
+        if(tries>40){box.innerHTML='<div class="hint" style="color:var(--warn)">查太久了，放弃喵</div>';return;}
+        box.innerHTML='<div class="hint">正在查连接表… 第 '+tries+'0 秒</div>';
+        setTimeout(again,3000); return;
+      }
+      if(r.ok){
+        var d=r.downstream||[], u=r.upstream||[];
+        box.innerHTML='<div class="grid" style="margin-top:12px">'+
+          '<div class="stat"><div class="k">连向几个神经元</div><div class="v">'+r.out_degree+'<small> 个</small></div></div>'+
+          '<div class="stat"><div class="k">突触总数（出）</div><div class="v">'+r.out_syn+'<small> 个</small></div></div>'+
+          '<div class="stat"><div class="k">从几个神经元接收</div><div class="v">'+r.in_degree+'<small> 个</small></div></div>'+
+          '<div class="stat"><div class="k">突触总数（入）</div><div class="v">'+r.in_syn+'<small> 个</small></div></div>'+
+        '</div>'+
+        '<div style="margin-top:12px;font-weight:600;font-size:14px">最强下游（它发给谁）</div>'+
+        d.map(function(x){return '<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:5px 0">'+
+          '<span class="mono">'+x.id+'</span><span>'+x.syn+' 突触 '+(x.exc?'<span class="up">兴奋</span>':'<span class="down">抑制</span>')+'</span></div>';}).join('')+
+        '<div style="margin-top:14px;font-weight:600;font-size:14px">最强上游（谁发给它）</div>'+
+        u.map(function(x){return '<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:5px 0">'+
+          '<span class="mono">'+x.id+'</span><span>'+x.syn+' 突触 '+(x.exc?'<span class="up">兴奋</span>':'<span class="down">抑制</span>')+'</span></div>';}).join('');
+      }else{
+        box.innerHTML='<div class="hint" style="color:var(--bad)">查不到，可能 ID 不在表里</div>';
+      }
+    });
+  })();
+}
+
+/* ---------- 刺激对比 ---------- */
+var VNAME={'v_100hz':'糖神经元降到 100 Hz','v_sugar10':'只刺激 10 个糖神经元','v_sugar30':'28 个（糖 + 中间神经元）一起刺激'};
+function vCompare(){
+  var b=S.baseline||{}, vs=(S.variants||[]).slice();
+  var rows=[{name:'基线（20 个 / 150 Hz）',mn9:b.mn9,n_firing:b.n_firing,n_exc:20,freq:150}].concat(vs);
+  var max=Math.max.apply(null,rows.map(function(r){return r.mn9||0;}).concat([1]));
+  var h='<div class="card"><div style="font-weight:600;margin-bottom:12px">换个刺激方案，伸喙输出怎么变</div>';
+  h+=rows.map(function(r){
+    var w=(r.mn9/max*100).toFixed(1);
+    return '<div style="margin:14px 0"><div class="row" style="justify-content:space-between">'+
+      '<span>'+esc(VNAME[r.variant||r.name]||r.name||'')+'<span class="tag" style="margin-left:6px">'+r.n_exc+' 个 · '+r.freq+' Hz</span></span>'+
+      '<b>'+fmt(r.mn9)+' Hz</b></div>'+
+      '<div class="bar" style="height:14px"><i style="width:'+w+'%;background:linear-gradient(90deg,#6366f1,#a855f7)"></i></div>'+
+      '<div class="hint" style="margin:2px 0 0">激活 '+r.n_firing+' 个神经元</div></div>';
+  }).join('');
+  h+='<div class="hint">同样的连接组，只改输入的数量和频率，输出就差这么多——这就是"感觉输入 → 运动输出"的增益。</div></div>';
+  $('#view').innerHTML=h;
+}
+
+/* ---------- 排行榜 ---------- */
+function vRank(){
+  var list=(S.silences||[]).slice().sort(function(a,b){return Math.abs(b.delta)-Math.abs(a.delta);});
+  var max=Math.max.apply(null,list.map(function(r){return Math.abs(r.delta);}).concat([1]));
+  var h='<div class="card"><div style="font-weight:600;margin-bottom:4px">谁最"不可替代"？</div>'+
+    '<div class="hint" style="margin:0 0 12px">按 |ΔMN9| 排序。注意：放电率高 ≠ 重要，很多高放电神经元关掉几乎没影响。</div>'+
+    '<table><thead><tr><th>#</th><th>神经元</th><th>变化</th><th></th></tr></thead><tbody>';
+  h+=list.map(function(r,i){
+    var w=(Math.abs(r.delta)/max*100).toFixed(1);
+    var cls=r.delta>0?'up':(r.delta<-2?'down':'flat');
+    var sign=r.delta>0?'+':'';
+    return '<tr><td>'+(i+1)+'</td><td class="mono">'+r.id+'</td>'+
+      '<td class="'+cls+'">'+sign+fmt(r.delta)+' Hz</td>'+
+      '<td><div class="bar"><i style="width:'+w+'%;background:'+(r.delta>0?'#34d399':(r.delta<-2?'#f87171':'#9aa3b8'))+'"></i></div></td></tr>';
+  }).join('');
+  h+='</tbody></table></div>';
+  $('#view').innerHTML=h;
+}
+
+/* ---------- 自定义实验 ---------- */
+var CUST_TIMER=null;
+function vCustom(){
+  var b=S.baseline||{};
+  var h='<div class="card"><div style="font-weight:600;margin-bottom:10px">自己造一次实验</div>'+
+    '<div class="hint" style="margin:0 0 12px">参数自己定，后台真跑（1 次试验约 60~90 秒），跑完把结果和基线放一起比。</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap">'+
+      '<label class="sub" style="font-size:12.5px">刺激频率 '+
+        '<select id="c-freq" style="background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px">'+
+        '<option value="100">100 Hz</option><option value="150" selected>150 Hz</option><option value="200">200 Hz</option></select></label>'+
+      '<label class="sub" style="font-size:12.5px">刺激神经元 '+
+        '<select id="c-nexc" style="background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px">'+
+        '<option value="5">5 个</option><option value="10">10 个</option><option value="20" selected>20 个</option></select></label>'+
+      '<label class="sub" style="font-size:12.5px">试验次数 '+
+        '<select id="c-nrun" style="background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px">'+
+        '<option value="1" selected>1</option><option value="3">3</option><option value="5">5</option></select></label>'+
+    '</div>'+
+    '<div class="row" style="margin-top:10px"><input id="c-silence" placeholder="要沉默的神经元 ID（可空）" inputmode="numeric" '+
+      'style="flex:1;background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px"></div>'+
+    '<div class="row" style="margin-top:10px"><button class="act" id="c-go">▶ 开始实验</button></div>'+
+    '<div id="c-box" style="margin-top:10px"></div></div>';
+  h+='<div class="card"><div class="hint" style="margin:0">基线（20 个 / 150 Hz）：MN9 = '+fmt(b.mn9)+' Hz，激活 '+fmt(b.n_firing,0)+' 个神经元</div></div>';
+  $('#view').innerHTML=h;
+  $('#c-go').onclick=function(){
+    var nid=($('#c-silence').value||'').trim();
+    if(nid && !/^[0-9]+$/.test(nid)){ alert('沉默 ID 要是数字喵'); return; }
+    $('#c-go').disabled=true;
+    api('/api/custom',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({freq:$('#c-freq').value, nexc:$('#c-nexc').value, nrun:$('#c-nrun').value, silence:nid})})
+      .then(function(r){
+        if(r.error){ $('#c-box').innerHTML='<div class="hint" style="color:var(--warn)">后台正忙，等上一个跑完喵</div>'; $('#c-go').disabled=false; return; }
+        pollCustom();
+      });
+  };
+  if($('#c-box')) pollCustom(true);
+}
+function pollCustom(quiet){
+  if(CUST_TIMER)clearInterval(CUST_TIMER);
+  CUST_TIMER=setInterval(function(){
+    api('/api/custom').then(function(r){
+      var box=$('#c-box'); if(!box){ clearInterval(CUST_TIMER); return; }
+      if(r.running){
+        box.innerHTML='<div class="hint">正在跑… 已用 '+(r.elapsed||0)+' 秒（1 次试验约 60~90 秒）</div>';
+        return;
+      }
+      clearInterval(CUST_TIMER); CUST_TIMER=null;
+      var go=$('#c-go'); if(go) go.disabled=false;
+      if(!r.ok){ if(!quiet) box.innerHTML='<div class="hint">还没跑过，先点上面的按钮喵</div>'; return; }
+      var d=r.mn9-(S.baseline?S.baseline.mn9:0);
+      box.innerHTML='<div class="grid">'+
+        '<div class="stat"><div class="k">MN9 放电</div><div class="v">'+fmt(r.mn9)+'<small> Hz</small></div></div>'+
+        '<div class="stat"><div class="k">对比基线</div><div class="v '+(d>2?'up':(d<-2?'down':'flat'))+'">'+(d>0?'+':'')+fmt(d)+'<small> Hz</small></div></div>'+
+        '<div class="stat"><div class="k">激活神经元</div><div class="v">'+r.n_firing+'<small> 个</small></div></div>'+
+        '<div class="stat"><div class="k">本次参数</div><div class="v" style="font-size:15px">'+r.n_exc+' 个 · '+r.freq+' Hz · '+r.n_run+' 次</div></div>'+
+        '</div>'+
+        '<div class="hint">用时 '+r.sec+' 秒'+(r.silenced&&r.silenced.length?(' · 沉默 '+r.silenced.join(',')):'')+' · '+r.at+'</div>';
+    });
+  }, 3000);
+}
+
+/* ---------- 关于 ---------- */
+function vUpdate(){
+  $('#view').innerHTML =
+    '<div class="card"><div style="font-weight:600;margin-bottom:8px">⇪ 更新这个部署</div>'+
+    '<div class="sub" style="font-size:13px;line-height:1.95">'+
+    '把新的 <b>flybrain-full.zip</b> 传到服务器，然后跑一条命令：'+
+    '<code style="display:block;margin:8px 0;padding:8px;background:#0b0d13;border-radius:6px;color:#9fe3b0">sudo /srv/flybrain/update.sh /path/to/flybrain-full.zip</code>'+
+    '自动完成：解压 → 覆盖 <b>play / web / 模型代码</b> → 保留实验结果与虚拟环境 → 1 秒后重启服务。<br>'+
+    '旧版本会备份到 <code>/tmp/flybrain_backup_时间戳/</code>，出问题拷回去就回滚。'+
+    '</div></div>'+
+    '<div class="card"><div style="font-weight:600;margin-bottom:8px">手动替换也行</div>'+
+    '<div class="sub" style="font-size:13px;line-height:1.95">'+
+    '把包里 <code>play/</code>、<code>web/</code> 覆盖到 <code>/srv/flybrain/</code>，然后'+
+    '<code>sudo systemctl restart flybrain flyplay</code>。<br>'+
+    '别覆盖 <code>Drosophila_brain_model/results/</code> 和 <code>web/jobs/</code>，那是跑出来的数据。'+
+    '</div></div>';
+}
+function vAbout(){
+  $('#view').innerHTML='<div class="card">'+
+   '<div style="font-weight:600;margin-bottom:8px">这套东西是什么</div>'+
+   '<div class="sub" style="color:var(--sub);font-size:13.5px;line-height:1.8">'+
+   'FlyWire 联盟 2024 年发布了成年果蝇全脑接线图：138,639 个神经元、约 5,450 万个突触。<br>'+
+   'Shiu 等人把它简化成稀疏 LIF 网络（每个神经元=会漏电的积分器，突触数=权重），用 Brian2 在 CPU 上跑。<br>'+
+   '本页所有数字都是**真的跑出来的**，不是预设动画：每次实验 1 秒脑时间 × N 次试验。<br>'+
+   '它能回答"刺激这群神经元，哪些下游被点亮"；不会自己动、没有学习与记忆，也没有身体。</div></div>'+
+   '<div class="card"><div style="font-weight:600;margin-bottom:8px">来源与许可</div>'+
+   '<div class="sub" style="font-size:13px;line-height:1.9">'+
+   '代码：github.com/philshiu/Drosophila_brain_model<br>'+
+   '数据：codex.flywire.ai（v783）<br>'+
+   '许可是 <b>CC BY-NC 4.0</b>：可学习/研究，需署名，不可商用。</div></div>'+
+   '<div class="card"><div style="font-weight:600;margin-bottom:8px">本机实测</div>'+
+   '<div class="sub" style="font-size:13px;line-height:1.9">'+
+   '8 核 Cortex-A520 / 8 GB 内存 / 无 GPU<br>'+
+   '单次试验约 60~90 秒，峰值内存约 2.7 GB<br>'+
+   '（对比：Mac mini M4 十条 P 核，30 次试验 33 秒）</div></div>';
+}
+
+/* ---------- 路由 ---------- */
+function render(){
+  $('#tabs').innerHTML=tabsHTML();
+  if(TAB==='overview')return vOverview();
+  if(TAB==='silence')return vSilence();
+  if(TAB==='compare')return vCompare();
+  if(TAB==='rank')return vRank();
+  if(TAB==='custom')return vCustom();
+  if(TAB==='update')return vUpdate();
+  return vAbout();
+}
+function load(silent){
+  api('/api/summary').then(function(s){S=s;render();}).catch(function(){
+    $('#view').innerHTML='<div class="card">加载失败，看看服务在不在喵</div>';
+  });
+}
+document.getElementById('tabs').addEventListener('click',function(e){
+  var b=e.target.closest('button[data-t]'); if(!b)return;
+  TAB=b.dataset.t; render();
+  if(TAB==='silence'&&S&&S.busy&&S.busy.id)pollJob(S.busy.id);
+});
+load();
+setInterval(function(){ if(TAB==='overview'||TAB==='rank')load(); }, 30000);
+</script>
+</body>
+</html>

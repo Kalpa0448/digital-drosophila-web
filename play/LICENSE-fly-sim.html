@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>致谢与许可 · fly-sim</title>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;padding:22px 18px 60px;background:#0b1117;color:#cfdae4;
+       font:14px/1.85 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:17px;margin:0 0 4px;color:#eaf2fa;letter-spacing:.04em}
+  .sub{color:#93a1b3;font-size:12.5px;margin-bottom:18px}
+  a{color:#7c8cff;word-break:break-all}
+  .card{background:#0f1620;border:1px solid #2b3a48;border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .card h2{font-size:13px;margin:0 0 8px;color:#eaf2fa;letter-spacing:.06em}
+  pre{white-space:pre-wrap;word-break:break-word;margin:0;font:12.5px/1.75 ui-monospace,Menlo,Consolas,monospace;color:#b9c2dc}
+  .back{display:inline-block;margin-top:6px;font-size:12.5px}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>致谢与许可</h1>
+  <div class="sub">数字果蝇 · 大世界 / 围栏 / 养果蝇</div>
+
+  <div class="card">
+    <h2>改编自</h2>
+    fly-sim —— 果蝇 3D 模拟器 · 实测连接组模型<br>
+    <a href="https://github.com/sjy20100819mc-cmyk/fly-sim" target="_blank" rel="noopener">github.com/sjy20100819mc-cmyk/fly-sim</a><br>
+    <span style="color:#93a1b3">MIT License · © 2026 sjy20100819mc-cmyk</span>
+  </div>
+
+  <div class="card">
+    <h2>改了什么</h2>
+    原项目把 16.5 万神经元降维成每只 48 个 LIF 神经元，配 3D 身体与自主行为。
+    本项目沿用其降维思路与参数口径（按细胞类型分组、≥5 突触才建边、gain ≈0.40、w_syn=0.275），
+    做成 48 神经元 / 145 条边（119 条实测）的紧凑回路 <b>flybrain-net.js</b>，
+    供大世界与围栏调用。
+  </div>
+
+  <div class="card">
+    <h2>数据来源</h2>
+    FlyWire FAFB v783（138,639 神经元，CC BY-NC 4.0）<br>
+    FlyEM 雄性 CNS v1.0（165,122 神经元 / 25,568,639 突触）<br>
+    全脑 LIF 模型参考 philshiu/Drosophila_brain_model
+  </div>
+
+  <div class="card">
+    <h2>fly-sim 原始许可全文</h2>
+    <pre>MIT License
+
+Copyright (c) 2026 sjy20100819mc-cmyk
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+-------------------------------------------------------------------------------
+Bundled third-party components
+-------------------------------------------------------------------------------
+three.js r147 — MIT License, Copyright © 2010-2022 three.js authors
+https://github.com/mrdoob/three.js
+
+The connectome-derived model parameters and reflex criteria in this project
+reference the following open-source works (FlyWire Consortium FAFB v783;
+flybench; philshiu/Drosophila_brain_model; Neuromorphicism/fly-brain-snntorch;
+snedea/flybrain; NeLy-EPFL/flygym). They are not bundled as code here — only
+their published parameters and wiring logic informed the reduced model.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre>
+  </div>
+
+  <a class="back" href="./">← 返回围栏</a>
+</div></body></html>

@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>数字果蝇 · 活体围栏</title>
+<style>
+:root{--bg:#08090d;--panel:rgba(16,18,25,.9);--line:#252a38;--ink:#e8ecf5;--sub:#8891a6;
+--ok:#34d399;--warn:#f0b429;--bad:#f87171;--acc:#6366f1;--acc2:#a855f7}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;
+font-family:system-ui,-apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif;font-size:13px}
+#c{position:fixed;inset:0;display:block;touch-action:none}
+button{font-family:inherit}
+
+/* ---------- 顶栏 ---------- */
+.topbar{position:fixed;left:0;right:0;top:0;height:52px;display:flex;align-items:center;gap:10px;
+padding:0 14px;background:linear-gradient(180deg,rgba(8,9,13,.92),rgba(8,9,13,0));z-index:6}
+.brand{font-size:15px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.st{color:var(--sub);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.menu-btn{flex:none;width:36px;height:36px;border-radius:12px;border:1px solid var(--line);
+background:var(--panel);color:var(--ink);font-size:16px;line-height:1;cursor:pointer}
+.menu-btn:active{background:#232838}
+
+/* ---------- 驱力（首屏核心） ---------- */
+.drives{position:fixed;left:14px;top:56px;width:196px;background:var(--panel);border:1px solid var(--line);
+border-radius:14px;padding:10px 12px;backdrop-filter:blur(10px);z-index:5}
+.drow{margin:6px 0}
+.drow .lb{display:flex;justify-content:space-between;font-size:11.5px;color:var(--sub);margin-bottom:3px}
+.drow .lb b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+.dbar{height:6px;background:#1f2330;border-radius:99px;overflow:hidden}
+.dbar i{display:block;height:100%;width:0;border-radius:99px;transition:width .25s}
+
+/* ---------- 缩放按钮（常显，左侧） ---------- */
+#zoom{position:fixed;left:14px;top:auto;bottom:calc(14px + 150px);display:flex;flex-direction:column;
+gap:7px;z-index:6}
+#zoom button{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);
+background:var(--panel);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;
+backdrop-filter:blur(10px)}
+#zoom button:active{background:#232838}
+
+/* ---------- 气味源按钮 ---------- */
+border-radius:9px;padding:6px 8px;font-size:11.5px;cursor:pointer;white-space:nowrap}
+@media (max-width:640px){
+}
+
+/* ---------- 参数面板 ---------- */
+#paramPanel{position:fixed;right:14px;top:58px;width:296px;max-height:calc(100vh - 130px);overflow:auto;
+background:#12141c;border:1px solid var(--line);border-radius:14px;padding:12px;display:none;z-index:15;
+box-shadow:0 18px 48px rgba(0,0,0,.55)}
+#paramPanel.on{display:block}
+#paramPanel .pp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#paramPanel .pp-head button{background:#1c2130;border:1px solid var(--line);color:var(--ink);
+border-radius:8px;padding:3px 9px;font-size:12px;cursor:pointer}
+#paramPanel .pp-group{font-size:10.5px;color:var(--sub);letter-spacing:.06em;margin:10px 0 4px;
+border-bottom:1px solid var(--line);padding-bottom:3px}
+#paramPanel .pp-row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--sub);margin:6px 0}
+#paramPanel .pp-row span{flex:1}
+#paramPanel .pp-row input{width:96px}
+#paramPanel .pp-row b{width:44px;text-align:right;color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+#paramPanel .pp-foot{display:flex;gap:8px;margin-top:12px}
+#paramPanel .pp-foot button{flex:1;background:#1c2130;border:1px solid var(--line);color:var(--ink);
+border-radius:9px;padding:7px 0;font-size:12px;cursor:pointer}
+@media (max-width:640px){ #paramPanel{width:calc(100vw - 24px);right:12px} }
+
+/* ---------- 底部工具条 ---------- */
+#tools{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + 96px);
+display:flex;gap:6px;z-index:7;flex-wrap:wrap;justify-content:center}
+#tools button{background:var(--panel);border:1px solid var(--line);color:var(--sub);
+border-radius:10px;padding:7px 12px;font-size:12px;cursor:pointer;backdrop-filter:blur(10px)}
+#tools button:active{background:#232838}
+@media (max-width:640px){
+ #tools{bottom:calc(14px + 92px);gap:5px;left:12px;transform:none;right:12px;justify-content:center}
+ #tools button{padding:6px 9px;font-size:11.5px}
+}
+
+/* ---------- 折叠抽屉：观察记录 ---------- */
+.pill{position:fixed;left:14px;top:246px;background:var(--panel);border:1px solid var(--line);color:var(--sub);
+border-radius:99px;padding:7px 14px;font-size:12px;cursor:pointer;z-index:6}
+.pill:active{background:#232838}
+#inbox{position:fixed;left:14px;top:284px;width:268px;max-height:46vh;overflow:auto;
+background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;
+backdrop-filter:blur(10px);z-index:6;display:none}
+#inbox.on{display:block}
+#inbox h3{margin:0 0 8px;font-size:11.5px;color:var(--sub);font-weight:500;letter-spacing:.05em}
+.msg{border-left:2px solid var(--acc);padding:4px 8px;margin:6px 0;background:rgba(99,102,241,.07);border-radius:0 8px 8px 0}
+.msg .who{font-size:10.5px;color:var(--acc2)}
+.msg .rul{font-size:10.5px;color:var(--sub);margin-top:2px}
+.ok{color:var(--ok)} .no{color:var(--bad)}
+
+/* ---------- 右上角菜单 ---------- */
+#menu{position:fixed;right:14px;top:58px;width:250px;max-height:calc(100vh - 200px);overflow:auto;
+background:#12141c;border:1px solid var(--line);border-radius:16px;padding:12px;
+box-shadow:0 18px 48px rgba(0,0,0,.55);z-index:9;display:none}
+#menu.on{display:block}
+.msec{padding:8px 0;border-bottom:1px solid var(--line)}
+.msec:last-child{border:0;padding-bottom:2px}
+.mtitle{font-size:10.5px;color:var(--sub);letter-spacing:.08em;margin-bottom:6px}
+#menu .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#menu button{background:#1c2130;border:1px solid var(--line);color:var(--ink);border-radius:10px;
+padding:7px 12px;font-size:12.5px;cursor:pointer}
+#menu button:active{background:#2a3147}
+#menu .zbtn{width:38px;padding:7px 0;text-align:center}
+.chip{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--sub);
+background:#1a1f2c;border:1px solid var(--line);padding:4px 9px;border-radius:99px;margin:3px 0}
+#tinfo{font-size:11.5px;color:var(--sub);line-height:18px;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tinfo:empty{display:none}
+.srow{display:flex;justify-content:space-between;align-items:baseline;
+font-size:11.5px;color:var(--sub);line-height:19px;min-height:19px}
+.srow b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+.mtext{font-size:11.5px;color:var(--sub);line-height:1.65}
+.mtext b{color:var(--ink);font-weight:500}
+
+/* ---------- 脑活动面板 ---------- */
+#brainPanel{position:fixed;right:14px;bottom:calc(14px + 118px);width:322px;
+background:rgba(14,16,23,.95);border:1px solid var(--line);border-radius:14px;padding:10px;
+display:none;z-index:7;backdrop-filter:blur(10px)}
+#brainPanel.on{display:block}
+#brainPanel .bp-head{display:flex;justify-content:space-between;align-items:baseline;
+font-size:12px;margin-bottom:6px}
+#brainPanel .bp-head b{font-size:12.5px}
+#brainPanel .bp-head span{color:var(--sub);font-size:10.5px}
+#brainCv{display:block;width:100%;height:250px;background:#0b0d13;border-radius:10px;
+border:1px solid var(--line)}
+#brainPanel .bp-leg{color:var(--sub);font-size:10.5px;margin-top:6px}
+#brainPanel .obsData{margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
+#brainPanel .orow{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);
+line-height:19px;min-height:19px}
+#brainPanel .orow b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+@media (max-width:640px){
+ #brainPanel{width:calc(100vw - 24px);right:12px;bottom:calc(14px + 152px)}
+ #brainCv{height:220px}
+}
+
+/* ---------- 实验台弹窗 ---------- */
+#modal{position:fixed;inset:0;background:rgba(4,5,9,.72);backdrop-filter:blur(3px);
+display:none;z-index:30;padding:14px}
+#modal.on{display:flex;align-items:center;justify-content:center}
+#modal .mbox{width:min(980px,100%);height:min(88vh,100%);background:#0d0f16;border:1px solid var(--line);
+border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+#modal .mhead{display:flex;align-items:center;justify-content:space-between;
+padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--sub)}
+#modal .mhead b{color:var(--ink);font-size:13.5px}
+#modal .mhead button{background:#1c2130;border:1px solid var(--line);color:var(--ink);
+border-radius:9px;padding:5px 12px;font-size:12.5px;cursor:pointer}
+#modal iframe{flex:1;width:100%;border:0;background:#0e1016}
+
+/* ---------- 底部放电条 ---------- */
+#strip{position:fixed;left:14px;right:14px;bottom:14px;background:var(--panel);border:1px solid var(--line);
+border-radius:14px;padding:9px 12px 10px;backdrop-filter:blur(10px);z-index:5}
+#strip .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:nowrap}
+#strip .head .t{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#strip .head .n{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;text-align:right;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none;max-width:56%}
+#strip .line{display:flex;align-items:center;gap:8px;margin:3px 0}
+#strip .lb{flex:none;width:70px;text-align:right;font-size:10px;color:var(--sub);white-space:nowrap}
+#strip .row{flex:1;display:flex;gap:2px;height:11px;align-items:stretch}
+#strip .row i{flex:1;background:#171b26;border-radius:2px}
+
+/* ---------- 小地图 ---------- */
+#mini{position:fixed;right:14px;bottom:calc(14px + 150px);background:var(--panel);border:1px solid var(--line);
+border-radius:14px;padding:8px;backdrop-filter:blur(10px);z-index:5}
+#mini canvas{display:block;border-radius:9px;background:#0b0d13}
+#mini .pos{font-size:10.5px;color:var(--sub);margin-top:4px;font-family:ui-monospace,monospace;text-align:center}
+
+@media (max-width:640px){
+ .brand{font-size:14px}
+ .st{font-size:11.5px}
+ .drives{width:150px;padding:8px 10px}
+ .drow .lb{font-size:10.5px}
+ .pill{top:222px;font-size:11px;padding:6px 12px}
+ #inbox{top:256px;width:calc(100vw - 28px);max-height:40vh}
+ #menu{width:calc(100vw - 28px);right:14px;top:54px;max-height:calc(100vh - 190px)}
+ #strip .head .t{font-size:10.5px}
+ #strip .head .n{font-size:10px;max-width:50%}
+ #mini{bottom:calc(14px + 146px);padding:6px}
+ #mini canvas{width:96px;height:96px}
+ #zoom{bottom:calc(14px + 146px);transform:none}
+ #zoom button{width:34px;height:34px;font-size:15px}
+ #strip .lb{width:52px;font-size:9.5px}
+ #strip .row{height:7px}
+}
+
+</style>
+
+<body>
+<canvas id="c"></canvas>
+
+<header class="topbar">
+  <div class="brand">🧠 数字果蝇</div>
+  <div class="st" id="state">初始化…</div>
+  <button class="menu-btn" id="menuBtn">☰</button>
+</header>
+
+<div class="drives" id="drives">
+  <div class="drow"><div class="lb"><span>饥饿</span><b id="v-hunger">0%</b></div><div class="dbar"><i id="d-hunger" style="background:#f0b429"></i></div></div>
+  <div class="drow"><div class="lb"><span>恐惧</span><b id="v-fear">0%</b></div><div class="dbar"><i id="d-fear" style="background:#f87171"></i></div></div>
+  <div class="drow"><div class="lb"><span>疲劳</span><b id="v-fatigue">0%</b></div><div class="dbar"><i id="d-fatigue" style="background:#8891a6"></i></div></div>
+  <div class="drow"><div class="lb"><span>好奇</span><b id="v-curiosity">0%</b></div><div class="dbar"><i id="d-curiosity" style="background:#34d399"></i></div></div>
+</div>
+
+<div id="zoom">
+  <button id="zin" title="放大">＋</button>
+  <button id="zout" title="缩小">－</button>
+  <button id="zrst" title="复位">⟳</button>
+</div>
+
+<button class="pill" id="inboxBtn">📥 观察记录 · 0</button>
+<div id="inbox"><h3>INBOX · 观察与审核</h3><div id="msgs"></div></div>
+
+<div id="menu">
+  <div class="msec">
+    <div class="mtitle">大世界</div>
+    <div class="row"><button id="openWorld">🌍 进入大世界</button></div>
+    <div class="mtext" style="margin-top:6px">地形 / 河流 / 草木 · 天敌 · 繁育</div>
+  </div>
+  <div class="msec">
+    <div class="mtitle">养果蝇</div>
+    <div class="row"><button id="openColony">🪰 打开养果蝇</button></div>
+    <div class="mtext" style="margin-top:6px">种群模拟 · 食物/粘板/信息素 · 脑活动</div>
+  </div>
+  <div class="msec">
+    <div class="mtitle">实验台</div>
+    <div class="row"><button id="openLab">🧪 打开神经实验台</button></div>
+    <div class="mtext" style="margin-top:6px">沉默实验 / 刺激对比 / 敏感性排行</div>
+  </div>
+  <div class="msec">
+    <div class="mtitle">参数</div>
+    <div class="row"><button id="paramBtn">⚙︎ 打开参数</button></div>
+  </div>
+  <div class="msec">
+    <div class="mtitle">操作</div>
+    <div class="chip"><span>☝</span><span><b>点地面</b> 气流扰动</span></div>
+    <div class="chip"><span>🪰</span><span><b>点果蝇</b> 惊跳</span></div>
+    <div class="chip"><span>⌕</span><span><b>滚轮 · 双指</b> 缩放</span></div>
+  </div>
+  <div class="msec">
+    <div class="mtitle">运行状态</div>
+    <div class="mtext" id="tinfo">—</div>
+    <div class="srow"><span>脑时间</span><b id="st-brain">—</b></div>
+    <div class="srow"><span>速度</span><b id="st-speed">—</b></div>
+    <div class="srow"><span>脉冲 / 100ms</span><b id="st-spikes">—</b></div>
+    <div class="srow"><span>活跃度</span><b id="st-act">—</b></div>
+  </div>
+  <div class="msec">
+    <div class="mtitle">关于</div>
+    <div class="mtext">FlyWire v783 · 138,639 神经元 · CC BY-NC 4.0<br>
+    <b>本地</b>：连接组 31 MB 下载到浏览器，在 Worker 里实时算，不依赖服务器。</div>
+  </div>
+
+  <div class="msec">
+    <div class="mtitle">致谢</div>
+    <div class="mtext" style="line-height:1.75">
+      本项目的果蝇神经回路模型改编自开源项目 <b>fly-sim</b>：<br>
+      <a href="https://github.com/sjy20100819mc-cmyk/fly-sim" target="_blank" rel="noopener"
+         style="color:#7c8cff;word-break:break-all">github.com/sjy20100819mc-cmyk/fly-sim</a><br>
+      <span style="color:#9aa4c0">FlyEM 雄性 CNS v1.0 实测连接组降维果蝇模拟器 ·
+      MIT License · © 2026 sjy20100819mc-cmyk</span>
+    </div>
+    <div class="mtext" style="margin-top:8px;line-height:1.75;color:#b9c2dc">
+      <b>改了什么</b>：原项目用 16.5 万神经元降维成每只 48 个 LIF 神经元，
+      配 3D 身体与自主行为。本站在此基础上做了 48 神经元 / 145 条边（119 条实测）的
+      紧凑回路 <b>flybrain-net.js</b>，并把「由放电率读出行为」接到大世界的
+      巡游 / 觅食 / 求偶 / 逃跑上。<br><br>
+      <b>数据来源</b>：FlyWire FAFB v783（138,639 神经元，CC BY-NC 4.0）与
+      FlyEM 雄性 CNS v1.0（165,122 神经元 / 25,568,639 突触）；全脑 LIF 模型参考
+      philshiu/Drosophila_brain_model。<br><br>
+      <b>许可</b>：MIT License · © 2026 sjy20100819mc-cmyk ·
+      <a href="LICENSE-fly-sim.html" target="_blank" style="color:#7c8cff">许可与致谢全文</a>
+    </div>
+  </div>
+  <div class="msec">
+    <div class="mtitle">部署</div>
+    <div class="row"><button id="openUpdate">⇪ 更新整个网站</button></div>
+    <div class="mtext" style="margin-top:6px">围栏 / 大世界 / 养果蝇 / 实验台 一起换</div>
+  </div>
+  <div id="sub" style="display:none">—</div>
+</div>
+
+<div id="strip">
+  <div class="head"><span class="t" id="capt">连接组实时放电</span><span class="n" id="tinfo2"></span></div>
+  <div class="line"><span class="lb" id="lb-s">感觉输入</span><div class="row" id="r-s"></div></div>
+  <div class="line"><span class="lb" id="lb-c">中枢</span><div class="row" id="r-c"></div></div>
+  <div class="line"><span class="lb" id="lb-m">运动输出</span><div class="row" id="r-m"></div></div>
+</div>
+
+<div id="brainPanel">
+  <div class="bp-head"><b>🧠 单只观察</b><span id="bInfo">—</span><button id="obsClose" style="margin-left:8px;background:#1c2130;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:3px 9px;font-size:12px;cursor:pointer">✕</button></div>
+  <canvas id="brainCv" width="300" height="250"></canvas>
+  <div class="bp-leg"><span style="color:#5ac8a0">●</span> 兴奋性
+    <span style="color:#dc6e82;margin-left:8px">●</span> 抑制性 · 亮度＝放电率</div>
+  <div class="obsData">
+    <div class="orow"><span>状态</span><b id="o-state">—</b></div>
+    <div class="orow"><span>能量 / 饥饿</span><b id="o-energy">—</b></div>
+    <div class="orow"><span>厌恶性权重 MBON_av</span><b id="o-avers">—</b></div>
+    <div class="orow"><span>粘板数 / 最近距离</span><b id="o-sticky">—</b></div>
+    <div class="orow"><span>被粘次数 / 累计时长</span><b id="o-stuck">—</b></div>
+    <div class="orow"><span>MN_walk / MN_feed</span><b id="o-mn">—</b></div>
+  </div>
+</div>
+
+<div id="modal">
+  <div class="mbox">
+    <div class="mhead"><b id="mheadTitle">🧪 神经实验台</b><button id="mclose">关闭 ✕</button></div>
+    <iframe id="mframe" src="about:blank"></iframe>
+  </div>
+</div>
+
+<div id="paramPanel">
+  <div class="pp-head"><b>⚙︎ 参数</b><button id="paramClose">✕</button></div>
+  <div class="pp-group">运动 / 飞行</div>
+  <div class="pp-row"><span>巡航速度</span><input type="range" id="q-walk" min="0.4" max="3" step="0.05" value="1.15"><b id="v-walk">1.15</b></div>
+  <div class="pp-row"><span>逃跑速度</span><input type="range" id="q-flee" min="1" max="5" step="0.1" value="2.6"><b id="v-flee">2.6</b></div>
+  <div class="pp-row"><span>转向速率</span><input type="range" id="q-turn" min="1" max="14" step="0.5" value="6"><b id="v-turn2">6</b></div>
+  <div class="pp-row"><span>体型缩放</span><input type="range" id="q-size" min="0.5" max="1.8" step="0.05" value="1"><b id="v-size">1.00</b></div>
+
+  <div class="pp-group">能量 / 饥饿</div>
+  <div class="pp-row"><span>基础代谢</span><input type="range" id="q-met" min="0.004" max="0.06" step="0.002" value="0.016"><b id="v-met2">0.016</b></div>
+  <div class="pp-row"><span>味觉抑制</span><input type="range" id="q-sup" min="0" max="0.06" step="0.002" value="0.018"><b id="v-sup">0.018</b></div>
+  <div class="pp-row"><span>饥饿阈值</span><input type="range" id="q-hung" min="0.3" max="0.95" step="0.01" value="0.66"><b id="v-hung2">0.66</b></div>
+  <div class="pp-row"><span>进食回复</span><input type="range" id="q-eat" min="0.05" max="0.6" step="0.01" value="0.20"><b id="v-eat2">0.20</b></div>
+
+  <div class="pp-group">粘板</div>
+  <div class="pp-row"><span>挣脱概率 /s</span><input type="range" id="q-esc" min="0.005" max="0.2" step="0.005" value="0.03"><b id="v-esc">3.0%</b></div>
+  <div class="pp-row"><span>被粘能量流失</span><input type="range" id="q-drain" min="0.01" max="0.2" step="0.005" value="0.05"><b id="v-drain">0.05</b></div>
+  <div class="pp-row"><span>危险学习率</span><input type="range" id="q-learn" min="0.02" max="0.5" step="0.01" value="0.10"><b id="v-learn">0.10</b></div>
+  <div class="pp-row"><span>危险遗忘率 /s</span><input type="range" id="q-forget" min="0" max="0.02" step="0.0005" value="0.004"><b id="v-forget">0.004</b></div>
+  <div class="pp-foot">
+    <button id="paramReset">↺ 恢复默认</button>
+    <button id="paramSave">💾 记住</button>
+  </div>
+</div>
+
+<div id="tools">
+  <button id="feedBtn">🍎 投喂</button>
+  <button id="foodClear">🧽 清食物</button>
+  <button id="stickyBtn">🟨 粘板</button>
+  <button id="stickyClear">🧹 清粘板</button>
+  <button id="obsBtn">🧠 观察</button>
+</div>
+
+<div id="mini">
+  <canvas id="mcanvas" width="132" height="132"></canvas>
+  <div class="pos" id="mpos">x 0.0 · y 0.0 · z 0.0</div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="flybrain-net.js?v=1"></script>
+<script>
+/* ============ 基础 ============ */
+var trace=null, frames=[], fi=0;
+var MODE='local';   // 只保留本地运算，回放已移除
+var latest={s:.3,c:.2,m:.15};      // 当前这一帧的神经活动（本地运算）
+var worker=null, localInfo={speed:0,brainSec:0,spikes:0};
+var STRIP=48, hist={s:[],c:[],m:[]};
+var drives={hunger:.55,fear:.05,fatigue:.2,curiosity:.3};
+var state='idle', stateT=0;
+var food=null, lightsOn=true;
+
+function $(q){return document.querySelector(q);}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function toast0(t){
+  var el=document.getElementById('state');
+  if(el && !el.dataset.bak) el.dataset.bak=el.textContent;
+  if(el) el.textContent=t;
+  clearTimeout(window.__toastT);
+  window.__toastT=setTimeout(function(){
+    if(el && el.dataset.bak){ el.textContent=el.dataset.bak; delete el.dataset.bak; }
+  },1800);
+}
+function rnd(a,b){return a+Math.random()*(b-a);}
+
+/* ============ 三条神经通道（本地运算实时数据） ============ */
+try{ startLocal(); }catch(err){ document.title='ERR '+err.message; }
+
+function act(type){ if(worker){ worker.postMessage(type); } }
+
+/* ============ 本地运算（Web Worker 里真跑 13.9 万神经元） ============ */
+function drawCurve(h,id){
+  var cv=document.getElementById(id||'mn9curve'); if(!cv)return;
+  var ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  if(!h.length)return;
+  var mx=Math.max.apply(null,h.concat([10]));
+  ctx.beginPath();
+  h.forEach(function(v,i){
+    var x=i/(Math.max(h.length-1,1))*W, y=H-4-(v/mx)*(H-10);
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+  });
+  ctx.strokeStyle='#7c8cff'; ctx.lineWidth=1.6; ctx.stroke();
+}
+function setStateRows(a,b,c,d){
+  var f=function(id,v){var el=document.getElementById(id); if(el)el.textContent=v;};
+  if(a!==undefined) f('st-brain',a);
+  if(b!==undefined) f('st-speed',b);
+  if(c!==undefined) f('st-spikes',c);
+  if(d!==undefined) f('st-act',d);
+}
+function startLocal(){
+  $('#capt').textContent='本地运算中 · 连接组实时放电';
+  $('#tinfo').textContent='加载连接组…';
+  $('#state').textContent='加载连接组 3.8 MB…';
+
+  if(!window.Worker){ $('#sub').textContent='这个浏览器不支持 Web Worker'; return; }
+  buildStrip();
+  worker=new Worker('brain_worker.js');
+  worker.onmessage=function(e){
+    var m=e.data;
+    if(m.type==='progress'){
+      $('#tinfo').textContent='下载中 '+Math.round(m.loaded/1048576*10)/10+' MB';
+    }else if(m.type==='status'){
+      $('#tinfo').textContent=m.text;
+    }else if(m.type==='ready'){
+      $('#sub').textContent='13.9 万神经元 · '+m.M.toLocaleString()+' 条连接 · 全在本地算';
+      $('#tinfo').textContent='就绪';
+      var gs=m2=0;
+      $('#lb-s').textContent='感觉输入 20';
+      $('#lb-c').textContent='中枢 '+(m.N-27).toLocaleString();
+      $('#lb-m').textContent='运动输出 7';
+    }else if(m.type==='frame'){
+      latest={s:m.s,c:m.c,m:m.m};
+      localInfo={speed:m.speed,brainSec:m.brainSec,spikes:m.spikes,hz:m.hz};
+      pushStrip(latest);
+      var sp=isFinite(m.speed)?m.speed:'—';
+      var t2=document.getElementById('tinfo2');
+      if(t2) t2.textContent='脑时 '+m.brainSec+'s · '+sp+'× · '+m.spikes+' 脉冲';
+      if($('#tinfo').textContent) $('#tinfo').textContent='';   // 旧的单行状态不再显示
+      setStateRows(m.brainSec+' s', sp+'×', m.spikes+' 个',
+                   '感'+Math.round(m.s*100)+'% 中'+Math.round(m.c*100)+'% 出'+Math.round(m.m*100)+'%');
+    }else if(m.type==='error'){
+      $('#tinfo').textContent='出错：'+m.text;
+      $('#sub').textContent=m.text;
+    }
+  };
+  worker.onerror=function(e){ $('#tinfo').textContent='worker 错误 '+e.message; };
+  worker.postMessage('start');
+}
+
+/* ============ 三维场景 ============ */
+var renderer;
+try{
+  renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});
+}catch(e){
+  document.body.innerHTML='<div style="padding:40px;font-size:15px;line-height:2">'+
+    '这个浏览器的 WebGL 打不开喵。<br>换 Chrome / Safari 再试试，或者关掉"省电模式"。</div>';
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+
+var scene=new THREE.Scene();
+scene.background=new THREE.Color(0x08090d);
+scene.fog=new THREE.Fog(0x08090d,9,20);
+var camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);
+camera.position.set(0,4.2,7.2); camera.lookAt(0,0,0);
+
+var envLab=new THREE.Group(); scene.add(envLab);
+var envWild=new THREE.Group(); envWild.visible=false; scene.add(envWild);
+
+var hemi=new THREE.HemisphereLight(0x8899ff,0x0a0a12,.75); scene.add(hemi);
+var key=new THREE.PointLight(0xffffff,1.1,30); key.position.set(3,7,4); scene.add(key);
+var warm=new THREE.PointLight(0xffcc88,.5,26); warm.position.set(-4,5,-3); scene.add(warm);
+var rim=new THREE.DirectionalLight(0xbfd8ff,1.15); rim.position.set(-5,4,-6); scene.add(rim);
+var fill=new THREE.DirectionalLight(0xffe4c4,.55); fill.position.set(5,3,5); scene.add(fill);
+
+// 地面圆盘
+var floor=new THREE.Mesh(new THREE.CircleGeometry(9,64),
+  new THREE.MeshStandardMaterial({color:0x12141c,roughness:.95,metalness:.05}));
+floor.rotation.x=-Math.PI/2; envLab.add(floor);
+var ring=new THREE.Mesh(new THREE.RingGeometry(8.6,9,64),
+  new THREE.MeshBasicMaterial({color:0x2a3350,side:THREE.DoubleSide}));
+ring.rotation.x=-Math.PI/2; ring.position.y=.01; envLab.add(ring);
+// 网格
+var grid=new THREE.GridHelper(18,36,0x1b2133,0x151a26); grid.position.y=.005; envLab.add(grid);
+
+// 食物盘
+food=new THREE.Mesh(new THREE.CylinderGeometry(.42,.46,.07,24),
+  new THREE.MeshStandardMaterial({color:0x6b4a2a,roughness:.8}));
+food.position.set(2.6,0.04,-1.2); scene.add(food);
+var foodGlow=new THREE.PointLight(0xffaa55,.35,3); foodGlow.position.copy(food.position).setY(.6); scene.add(foodGlow);
+function randomFoodSpot(){
+  for(var i=0;i<20;i++){
+    var a=Math.random()*Math.PI*2, r=2.2+Math.random()*4.6;
+    var x=Math.cos(a)*r, z=Math.sin(a)*r, ok=true;
+    for(var k=0;k<stickies.length;k++){
+      if(Math.hypot(x-stickies[k].pos.x, z-stickies[k].pos.y)<1.6){ ok=false; break; }
+    }
+    if(ok) return {x:x,z:z};
+  }
+  return {x:2.6,z:-1.2};
+}
+function feedFood(){
+  foodOn=true;
+  var p0=randomFoodSpot();
+  food.position.set(p0.x,0.04,p0.z);
+  food.visible=true;
+  foodGlow.position.set(p0.x,0.6,p0.z);
+  foodGlow.intensity=1.6;
+  setTimeout(function(){ foodGlow.intensity=.35; },1500);
+  pushMsg('你','投喂了一份食物');
+}
+
+// 灯（影响休息）
+var lamp=new THREE.PointLight(0xbfd4ff,1.1,20); lamp.position.set(0,8,0); envLab.add(lamp);
+
+var RADIUS=8.4;
+var ENV='lab';
+function isWater(x,z){ return false; }   // 野外环境已移除
+function setEnv(e){
+  if(!envLab||!envWild) return;
+  ENV='lab';
+  envLab.visible=true; envWild.visible=false;
+  scene.background=new THREE.Color(0x08090d);
+  scene.fog=new THREE.Fog(0x08090d,9,20);
+  hemi.color.set(0x8899ff); hemi.groundColor.set(0x0a0a12); hemi.intensity=.75;
+  key.color.set(0xffffff); key.intensity=1.1;
+  if(food) food.visible=true;
+}
+
+/* ============ 果蝇 ============ */
+var fly=new THREE.Group(); scene.add(fly);
+
+/* ---- 材质 ---- */
+var bodyMat=new THREE.MeshStandardMaterial({color:0x474f6e,roughness:.78,metalness:.08});
+var thoraxMat=new THREE.MeshStandardMaterial({color:0x414a69,roughness:.72,metalness:.1});
+var darkMat=new THREE.MeshStandardMaterial({color:0x232835,roughness:.65});
+var eyeMat=new THREE.MeshStandardMaterial({color:0x9c2b2b,roughness:.28,metalness:.45});
+var wingMat=new THREE.MeshStandardMaterial({color:0xcfe0ff,transparent:true,opacity:.26,
+  roughness:.15,metalness:.05,side:THREE.DoubleSide,depthWrite:false});
+var veinMat=new THREE.LineBasicMaterial({color:0x9fb4dd,transparent:true,opacity:.45});
+var legMat=new THREE.MeshStandardMaterial({color:0x77819b,roughness:.55,metalness:.2});
+
+var abdominal=null;
+/* ---- 腹部：从尾部到胸部的水滴形 + 环纹 ---- */
+(function(){
+  var prof=[[0.145,0.00],[0.185,0.05],[0.215,0.12],[0.238,0.22],[0.242,0.32],
+            [0.222,0.42],[0.175,0.52],[0.105,0.60],[0.035,0.66],[0.00,0.70]];
+  var pts=prof.map(function(p){return new THREE.Vector2(p[0],p[1]);});
+  var abdomen=new THREE.Mesh(new THREE.LatheGeometry(pts,30),bodyMat);
+  abdomen.rotation.z=Math.PI/2;
+  abdomen.scale.set(1.04,1,0.80);
+  abdomen.position.set(0.12,0.30,0);
+  abdominal=abdomen; fly.add(abdomen);
+
+  var ringMat=new THREE.MeshStandardMaterial({color:0x2b3148,roughness:.7});
+  var rings=[[0.20,0.215],[0.32,0.225],[0.44,0.20],[0.55,0.135]];
+  rings.forEach(function(rg){
+    var ring=new THREE.Mesh(new THREE.TorusGeometry(rg[1],0.011,6,26),ringMat);
+    ring.rotation.y=Math.PI/2;
+    ring.position.set(0.12-rg[0],0.30,0);
+    ring.scale.set(1,0.88,1);
+    fly.add(ring);
+  });
+})();
+
+/* ---- 胸 ---- */
+var thorax=new THREE.Mesh(new THREE.SphereGeometry(0.215,26,20),thoraxMat);
+thorax.scale.set(1.05,0.96,1.0); thorax.position.set(0.30,0.31,0); fly.add(thorax);
+var scutum=new THREE.Mesh(new THREE.SphereGeometry(0.16,20,14),thoraxMat);
+scutum.scale.set(1.0,0.50,0.92); scutum.position.set(0.24,0.41,0); fly.add(scutum);
+
+/* ---- 头 ---- */
+var head=new THREE.Mesh(new THREE.SphereGeometry(0.145,22,16),darkMat);
+head.scale.set(0.95,1.0,1.0); head.position.set(0.50,0.31,0); fly.add(head);
+var eyeL=new THREE.Mesh(new THREE.SphereGeometry(0.115,20,16),eyeMat);
+eyeL.scale.set(0.78,1.0,0.72); eyeL.position.set(0.53,0.33,0.095); fly.add(eyeL);
+var eyeR=eyeL.clone(); eyeR.position.z=-0.095; fly.add(eyeR);
+for(var oi=-1;oi<=1;oi++){
+  var oc=new THREE.Mesh(new THREE.SphereGeometry(0.014,8,6),
+    new THREE.MeshStandardMaterial({color:0xd9c07a,roughness:.3,metalness:.6}));
+  oc.position.set(0.47,0.42,oi*0.035); fly.add(oc);
+}
+for(var ai=-1;ai<=1;ai+=2){
+  var ant=new THREE.Mesh(new THREE.CylinderGeometry(0.011,0.008,0.15,6),darkMat);
+  ant.position.set(0.57,0.36,ai*0.045); ant.rotation.z=-Math.PI/2.4; ant.rotation.x=ai*0.35;
+  fly.add(ant);
+  var arista=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.001,0.16,4),darkMat);
+  arista.position.set(0.64,0.42,ai*0.06); arista.rotation.z=-0.9; arista.rotation.x=ai*0.5;
+  fly.add(arista);
+}
+var proboscis=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.012,0.16,8),darkMat);
+proboscis.position.set(0.56,0.20,0); proboscis.rotation.z=1.2; proboscis.scale.y=0.15;
+fly.add(proboscis);
+
+/* ---- 翅膀 ---- */
+function makeWing(){
+  // 注意：翅膀要往 -X（屁股方向）长，别再画到脑袋前面了
+  var sh=new THREE.Shape();
+  sh.moveTo(0,0);
+  sh.bezierCurveTo(-0.10,0.10, -0.42,0.16, -0.62,0.06);
+  sh.bezierCurveTo(-0.70,0.02, -0.55,-0.07, -0.28,-0.08);
+  sh.bezierCurveTo(-0.12,-0.085, -0.03,-0.05, 0,-0.02);
+  var g=new THREE.ShapeGeometry(sh,18);
+  var m=new THREE.Mesh(g,wingMat);
+  var pts=[];
+  for(var i=1;i<=4;i++){
+    var y=(i-2)*0.045;
+    pts.push(new THREE.Vector3(-0.02,y,0.001), new THREE.Vector3(-(0.62-i*0.03),y*0.4,0.001));
+  }
+  var veins=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),veinMat);
+  m.add(veins);
+  return m;
+}
+var wingPivotL=new THREE.Group(); wingPivotL.position.set(0.20,0.44,0.10); wingPivotL.scale.setScalar(1.15); fly.add(wingPivotL);
+var wingL=makeWing(); wingL.rotation.x=-Math.PI/2; wingL.rotation.z=0.28; wingPivotL.add(wingL);
+var wingPivotR=new THREE.Group(); wingPivotR.position.set(0.20,0.44,-0.10); wingPivotR.scale.setScalar(1.15); fly.add(wingPivotR);
+var wingR=makeWing(); wingR.rotation.x=-Math.PI/2; wingR.rotation.z=-0.28; wingPivotR.add(wingR);
+for(var hi=-1;hi<=1;hi+=2){
+  var hal=new THREE.Mesh(new THREE.SphereGeometry(0.022,8,6),darkMat);
+  hal.position.set(0.20,0.33,hi*0.13); fly.add(hal);
+}
+
+/* ---- 六条腿 ---- */
+var legs=[];
+for(var sgn=-1;sgn<=1;sgn+=2){
+  for(var k=0;k<3;k++){
+    var hx=0.40-k*0.16, hz=sgn*0.17;
+    var hip=new THREE.Group(); hip.position.set(hx,0.22,hz); fly.add(hip);
+    hip.rotation.x=-sgn*1.20;                      // 先向外伸（符号别反）
+    var baseZ=(1-k)*0.60;                          // 前腿朝前、后腿朝后
+    hip.rotation.z=baseZ;
+    var femur=new THREE.Mesh(new THREE.CylinderGeometry(0.024,0.017,0.28,7),legMat);
+    femur.position.y=-0.14; hip.add(femur);
+    var knee=new THREE.Group(); knee.position.y=-0.28; hip.add(knee);
+    knee.rotation.z=-baseZ*0.45;
+    knee.rotation.x=sgn*0.95;                      // 膝再往下折
+    var tibia=new THREE.Mesh(new THREE.CylinderGeometry(0.017,0.009,0.30,7),legMat);
+    tibia.position.y=-0.15; knee.add(tibia);
+    var tarsus=new THREE.Mesh(new THREE.CylinderGeometry(0.010,0.004,0.10,6),legMat);
+    tarsus.position.y=-0.33; knee.add(tarsus);
+    legs.push({hip:hip,knee:knee,side:sgn,k:k,baseZ:baseZ,kneeBase:-baseZ*0.45,kneeBaseX:sgn*0.95});
+  }
+}
+
+var shadow=new THREE.Mesh(new THREE.CircleGeometry(.6,28),
+  new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.33}));
+shadow.rotation.x=-Math.PI/2; shadow.position.y=.02; scene.add(shadow);
+
+/* ============ 行为 ============ */
+var pos=new THREE.Vector2(0,0), heading=0, vel=new THREE.Vector2();
+var alt=0.10, flyStart=0, altGoal=1.25, nextFlyAt=9;
+var condInfo={wCue:0,on:false,phase:'idle'};
+var learned80=false;
+setTimeout(function(){                 // 开局食物落在随机位置
+  var p0=randomFoodSpot();
+  food.position.set(p0.x,0.04,p0.z);
+  foodGlow.position.set(p0.x,0.6,p0.z);
+}, 80);
+setTimeout(function(){                 // 野外如果生在水里，挪到岸上
+  if(ENV==='wild' && isWater(pos.x,pos.y)){
+    pos.set(-2.5,-3.0); alt=0.10; hasTarget=false;
+  }
+}, 60);
+var target=new THREE.Vector2(0,0), hasTarget=false;
+
+function setState(s){
+  state=s; stateT=0;
+  var label={idle:'静止', walk:'行走', groom:'理毛', feed:'进食',
+    startle:'惊跳！', flee:'逃跑', rest:'休息', explore:'探索', fly:'飞行 ✈'}[s]||s;
+  $('#state').textContent=label+' · '+Math.round(drives.hunger*100)+'%饿';
+}
+setState('idle');
+
+function takeoff(){
+  if(stuckT>0) return;              // 被粘住飞不起来
+  setState('fly'); flyStart=t; altGoal=rnd(0.75, 2.20);
+  hasTarget=true; target.set(rnd(-RADIUS*0.9,RADIUS*0.9), rnd(-RADIUS*0.9,RADIUS*0.9));
+  fileRequest('safety','运动输出增强、翅膀开始高频振动，果蝇起飞了');
+}
+function land(){
+  setState('walk'); altGoal=0.10; hasTarget=true;
+  target.set(pos.x+rnd(-2,2), pos.y+rnd(-2,2));
+}
+function pickBehavior(){
+  if(state==='fly')return;                      // 飞行中由主循环管
+  // 脑驱动起飞：中枢活跃 → 恐惧/好奇抬升；运动输出高 → 更想飞
+  if(drives.fear>.58 || (drives.curiosity>.78 && latest.m>.45)){ takeoff(); return; }
+  if(drives.fear>.62){ setState('flee'); target.set(rnd(-7,7),rnd(-7,7)); hasTarget=true; return; }
+  if(drives.fatigue>.78){ setState('rest'); if(!lightsOn)dimLights(true); return; }
+  if(drives.hunger>PA.hung && foodOn){ setState('feed'); target.set(food.position.x,food.position.z); hasTarget=true; return; }
+  // 学会了"线索→糖"以后，闻到味就朝气味源走
+  if(drives.curiosity>.62){
+    setState('explore');
+    var tx0=0,tz0=0,tries=0;
+    do{ tx0=rnd(-7,7); tz0=rnd(-7,7); tries++; }while(aversion>0.15 && tries<12 && !safeSpot(tx0,tz0));
+    target.set(tx0,tz0); hasTarget=true; return;
+  }
+  if(Math.random()<.35){ setState('groom'); return; }
+  if(Math.random()<.6){ setState('walk'); target.set(rnd(-6,6),rnd(-6,6)); hasTarget=true; return; }
+  setState('idle');
+}
+
+/* ============ 交互 ============ */
+var ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+var cvs=renderer.domElement;
+var pts={}, pinchD=0, downT=0, downX=0, downY=0, pinched=false;
+
+function handleTap(cx,cy){
+  var r=cvs.getBoundingClientRect();
+  mouse.x=((cx-r.left)/r.width)*2-1;
+  mouse.y=-((cy-r.top)/r.height)*2+1;
+  ray.setFromCamera(mouse,camera);
+  var hitFly=ray.intersectObject(fly,true);
+  var hitFloor=ray.intersectObject(floor);
+  if(hitFly.length && (!hitFloor.length || hitFly[0].distance < hitFloor[0].distance+0.6)){
+    drives.fear=clamp(drives.fear+.42,0,1);
+    setState('startle');
+    setTimeout(function(){ if(state==='startle'){ setState('flee'); target.set(rnd(-7,7),rnd(-7,7)); hasTarget=true; } },420);
+    fileRequest('safety','观察者发现围栏外有突然的触碰，果蝇出现惊跳反应');
+    return;
+  }
+  if(hitFloor.length){
+    if(placingSticky){
+      var ptS=hitFloor[0].point;
+      if(addSticky(ptS.x, ptS.z)){ pushMsg('你','放了一块粘板'); }
+      else { toast0('最多 8 块粘板喵'); }
+      placingSticky=false;
+      var sb0=document.getElementById('stickyBtn'); if(sb0) sb0.textContent='🟨 放粘板';
+      return;
+    }
+    drives.fear=clamp(drives.fear+.14,0,1);
+    var hp=hitFloor[0].point;
+    if(hp.distanceTo(new THREE.Vector3(pos.x,0,pos.y))<3.5){
+      setState('startle');
+      setTimeout(function(){ if(state==='startle')pickBehavior(); },400);
+    }
+  }
+}
+
+cvs.addEventListener('pointerdown',function(e){
+  pts[e.pointerId]={x:e.clientX,y:e.clientY};
+  var k=Object.keys(pts);
+  if(k.length===2){ pinched=true; pinchD=Math.hypot(pts[k[0]].x-pts[k[1]].x, pts[k[0]].y-pts[k[1]].y); }
+  downT=performance.now(); downX=e.clientX; downY=e.clientY;
+});
+cvs.addEventListener('pointermove',function(e){
+  if(!pts[e.pointerId])return;
+  pts[e.pointerId]={x:e.clientX,y:e.clientY};
+  var k=Object.keys(pts);
+  if(k.length>=2){
+    var d=Math.hypot(pts[k[0]].x-pts[k[1]].x, pts[k[0]].y-pts[k[1]].y);
+    if(pinchD>4 && d>4){ zoom=clamp(zoom*(pinchD/d), ZMIN, ZMAX); }
+    pinchD=d;
+  }
+});
+cvs.addEventListener('pointerup',function(e){
+  var wasPinch=pinched, dt=performance.now()-downT;
+  var dist=Math.hypot(e.clientX-downX, e.clientY-downY);
+  delete pts[e.pointerId];
+  if(Object.keys(pts).length<2) pinchD=0;
+  if(Object.keys(pts).length===0) pinched=false;
+  if(!wasPinch && dt<400 && dist<12){ handleTap(e.clientX,e.clientY); }
+});
+cvs.addEventListener('pointercancel',function(e){ delete pts[e.pointerId]; pinched=false; pinchD=0; });
+cvs.addEventListener('wheel',function(e){
+  e.preventDefault();
+  zoom=clamp(zoom*(e.deltaY>0?1.09:0.92), ZMIN, ZMAX);
+},{passive:false});
+
+$('#zin').onclick=function(){ zoom=clamp(zoom*0.85, ZMIN, ZMAX); };
+$('#zout').onclick=function(){ zoom=clamp(zoom*1.18, ZMIN, ZMAX); };
+$('#zrst').onclick=function(){ zoom=1; };
+
+/* ============ Buzz（规则观察者 + 审核） ============ */
+var lastReq={};
+function fileRequest(kind,text){
+  var now=performance.now();
+  if(lastReq[kind] && now-lastReq[kind]<15000) return;
+  lastReq[kind]=now;
+  var label={meal:'餐券申请',pto:'休假申请',goal:'学习目标',safety:'安全隐患'}[kind]||kind;
+  var approve=Math.random()< (kind==='safety'?.9:.78);
+  pushMsg('Buzz','['+label+'] '+text);
+  setTimeout(function(){
+    pushMsg('审核者', approve?('已批准 → '+consequence(kind)):'已驳回（当前不需要）', approve);
+  }, 1400);
+}
+function consequence(kind){
+  if(kind==='meal'){ drives.hunger=clamp(drives.hunger-.45,0,1); dropFood(); return '食物投放'; }
+  if(kind==='pto'){ drives.fatigue=clamp(drives.fatigue-.5,0,1); dimLights(true); restoreLightsSoon(); return '灯光调暗，可以休息'; }
+  if(kind==='goal'){ drives.curiosity=clamp(drives.curiosity-.4,0,1); return '记录为探索目标'; }
+  if(kind==='safety'){ drives.fear=clamp(drives.fear-.2,0,1); return '加强围栏提示'; }
+  return '已处理';
+}
+var msgCount=0;
+function pushMsg(who,text,ok){
+  var box=$('#msgs');
+  var d=document.createElement('div');
+  d.className='msg';
+  d.innerHTML='<div class="who">'+who+'</div><div>'+text+'</div>'+
+    (ok===undefined?'':'<div class="rul '+(ok?'ok':'no')+'">'+(ok?'✓ 批准':'✗ 驳回')+'</div>');
+  box.insertBefore(d,box.firstChild);
+  msgCount++;
+  var ib=document.getElementById('inboxBtn');
+  if(ib) ib.textContent='📥 观察记录 · '+msgCount;
+  while(box.children.length>14) box.removeChild(box.lastChild);
+}
+var buzzT=0;
+function buzzTick(dt){
+  buzzT+=dt;
+  if(buzzT<6) return; buzzT=0;
+  if(drives.hunger>.72) return fileRequest('meal','饥饿驱动持续偏高，蹲在食盘附近来回踱步');
+  if(drives.fatigue>.74) return fileRequest('pto','运动输出减少、静止时间变长，像是累了');
+  if(drives.curiosity>.66) return fileRequest('goal','在空旷区域反复绕圈探索，对边界很好奇');
+  if(drives.fear>.55) return fileRequest('safety','惊跳后迟迟不回到食盘，处于警觉状态');
+}
+function dropFood(){
+  foodGlow.intensity=1.6;
+  setTimeout(function(){ foodGlow.intensity=.35; },2500);
+}
+function restoreLightsSoon(){ setTimeout(function(){ if(state!=='rest'){ dimLights(false); } },12000); }
+function dimLights(on){
+  lightsOn=!on;
+  lamp.intensity=on?0.18:1.1;
+  key.intensity=on?0.35:1.1;
+}
+
+/* ============ 底部连接组条 ============ */
+function buildStrip(){
+  ['s','c','m'].forEach(function(k){
+    var row=$('#r-'+k);
+    for(var i=0;i<STRIP;i++){
+      var e=document.createElement('i'); row.appendChild(e); hist[k].push(0);
+    }
+  });
+}
+var lbBase={};
+function renderStrip(){
+  ['s','c','m'].forEach(function(k){
+    var row=$('#r-'+k).children;
+    for(var i=0;i<STRIP;i++){
+      var cell=row[i]; if(!cell)continue;
+      var v=hist[k][i]||0;
+      var col=k==='s'?[99,102,241]:k==='c'?[168,85,247]:[52,211,153];
+      var vv=Math.max(0,Math.min(1,v));
+      var a=vv<0.08?0.03:(0.22+0.78*Math.pow(vv,0.55));
+      cell.style.background='rgba('+col.join(',')+','+a.toFixed(3)+')';
+    }
+  });
+}
+function pushStrip(f){
+  ['s','c','m'].forEach(function(k){
+    hist[k].push(f[k]); if(hist[k].length>STRIP) hist[k].shift();
+  });
+  renderStrip();
+}
+function seedStrip(){
+  if(!frames.length)return;
+  for(var i=0;i<STRIP;i++){
+    var f=frames[(frames.length-STRIP+i)%frames.length]||{s:0,c:0,m:0};
+    hist.s[i]=f.s; hist.c[i]=f.c; hist.m[i]=f.m;
+  }
+  renderStrip();
+}
+
+/* ============ 参数（可调） ============ */
+var PA={walk:1.15, flee:2.6, turn:6, size:1, met:0.016, sup:0.018,
+        hung:0.66, eat:0.20, esc:0.03, drain:0.05, learn:0.10, forget:0.004};
+var PA_DEFAULT=JSON.parse(JSON.stringify(PA));
+try{ var pSaved=JSON.parse(localStorage.getItem('kwparams')||'null');
+     if(pSaved) Object.keys(PA).forEach(function(k){ if(typeof pSaved[k]==='number') PA[k]=pSaved[k]; }); }catch(e){}
+function syncParamUI(){
+  var set=function(id,val,txt){ var el=document.getElementById(id); if(el){ el.value=val; } 
+    var b=document.getElementById(id.replace('q-','v-')); if(b) b.textContent=txt; };
+  set('q-walk',PA.walk,PA.walk.toFixed(2));
+  set('q-flee',PA.flee,PA.flee.toFixed(1));
+  set('q-turn',PA.turn,PA.turn.toFixed(1));
+  set('q-size',PA.size,PA.size.toFixed(2));
+  set('q-met',PA.met,PA.met.toFixed(3));
+  set('q-sup',PA.sup,PA.sup.toFixed(3));
+  set('q-hung',PA.hung,PA.hung.toFixed(2));
+  set('q-eat',PA.eat,PA.eat.toFixed(2));
+  set('q-esc',PA.esc,(PA.esc*100).toFixed(1)+'%');
+  set('q-drain',PA.drain,PA.drain.toFixed(3));
+  set('q-learn',PA.learn,PA.learn.toFixed(2));
+  set('q-forget',PA.forget,PA.forget.toFixed(4));
+}
+function bindParam(id,key,fmt){
+  var el=document.getElementById(id); if(!el) return;
+  el.oninput=function(){
+    PA[key]=parseFloat(el.value);
+    var b=document.getElementById(id.replace('q-','v-')); if(b) b.textContent=fmt(PA[key]);
+    if(key==='size'&&typeof fly!=='undefined') fly.scale.setScalar(0.9*PA.size);
+  };
+}
+bindParam('q-walk','walk',function(v){return v.toFixed(2);});
+bindParam('q-flee','flee',function(v){return v.toFixed(1);});
+bindParam('q-turn','turn',function(v){return v.toFixed(1);});
+bindParam('q-size','size',function(v){return v.toFixed(2);});
+bindParam('q-met','met',function(v){return v.toFixed(3);});
+bindParam('q-sup','sup',function(v){return v.toFixed(3);});
+bindParam('q-hung','hung',function(v){return v.toFixed(2);});
+bindParam('q-eat','eat',function(v){return v.toFixed(2);});
+bindParam('q-esc','esc',function(v){return (v*100).toFixed(1)+'%';});
+bindParam('q-drain','drain',function(v){return v.toFixed(3);});
+bindParam('q-learn','learn',function(v){return v.toFixed(2);});
+bindParam('q-forget','forget',function(v){return v.toFixed(4);});
+syncParamUI();
+if(typeof fly!=='undefined') fly.scale.setScalar(0.9*PA.size);
+$('#paramBtn').onclick=function(e){ e.stopPropagation(); $('#paramPanel').classList.toggle('on'); };
+if(/[?&]param=1/.test(location.search)) setTimeout(function(){ $('#paramBtn').click(); }, 500);
+$('#paramClose').onclick=function(e){ e.stopPropagation(); $('#paramPanel').classList.remove('on'); };
+$('#paramReset').onclick=function(e){
+  e.stopPropagation();
+  Object.keys(PA_DEFAULT).forEach(function(k){ PA[k]=PA_DEFAULT[k]; });
+  syncParamUI(); if(typeof fly!=='undefined') fly.scale.setScalar(0.9*PA.size);
+  toast0('参数已恢复默认');
+};
+$('#paramSave').onclick=function(e){
+  e.stopPropagation();
+  try{ localStorage.setItem('kwparams', JSON.stringify(PA)); toast0('参数已记住'); }catch(err){}
+};
+
+/* ============ 粘板（危险物） ============ */
+var stickies=[];                  // {mesh, pos:Vector2, r}
+var speedNow=0, energyNow=100, stuckTotal=0, flashT=0, foodOn=true;
+var placingSticky=false;
+var aversion=0.0;                 // 学到的"粘板危险"权重（0~1）
+var stuckT=0, stuckCount=0;
+function addSticky(x,z){
+  if(stickies.length>=8) return false;
+  var g=new THREE.Group();
+  var disc=new THREE.Mesh(new THREE.CircleGeometry(0.55,26),
+    new THREE.MeshStandardMaterial({color:0xd9a531,roughness:.35,metalness:.1,
+      transparent:true,opacity:.85}));
+  disc.rotation.x=-Math.PI/2; disc.position.y=0.012; g.add(disc);
+  var rim=new THREE.Mesh(new THREE.RingGeometry(0.55,0.63,26),
+    new THREE.MeshBasicMaterial({color:0xf0b429,transparent:true,opacity:.65,side:THREE.DoubleSide}));
+  rim.rotation.x=-Math.PI/2; rim.position.y=0.014; g.add(rim);
+  g.position.set(x,0,z);
+  scene.add(g);
+  stickies.push({mesh:g, pos:new THREE.Vector2(x,z), r:0.55});
+  return true;
+}
+function safeSpot(x,z){
+  for(var i=0;i<stickies.length;i++){
+    if(Math.hypot(x-stickies[i].pos.x, z-stickies[i].pos.y) < 3.0*(0.6+aversion)) return false;
+  }
+  return true;
+}
+function nearestSticky(){
+  var best=null, bd=1e9;
+  for(var i=0;i<stickies.length;i++){
+    var d=pos.distanceTo(stickies[i].pos);
+    if(d<bd){ bd=d; best=stickies[i]; }
+  }
+  return best?{s:best,d:bd}:null;
+}
+
+/* ============ 单只观察：FlyEM 实测连接组降维 LIF（与养果蝇项目同一套） ============ */
+var BRAIN_N = (typeof NET!=='undefined') ? NET.n : 48;
+var BCOLS=[{key:'Sensory',label:'Sensory'},{key:'Drives',label:'Drives'},
+           {key:'Central',label:'Central'},{key:'Motor',label:'Motor'}];
+var bNodes=[], bColIdx=[];
+var obsBr = newFlyBrain();
+var bOn=false, bWalk=0, bFeed=0, bRate={s:0,c:0,m:0};
+(function(){
+  // 按真实细胞类型排布到 4 列；列内按类型顺序排列
+  var colY = {Sensory:0, Drives:0, Central:0, Motor:0};
+  var totals = {Sensory:0, Drives:0, Central:0, Motor:0};
+  for(var i=0;i<BRAIN_N;i++) totals[NET.col[i]]++;
+  var colX = {Sensory:0.10, Drives:0.38, Central:0.64, Motor:0.90};
+  for(var j=0;j<BRAIN_N;j++){
+    var cl=NET.col[j];
+    var idx=colY[cl]++;
+    var n=totals[cl];
+    bNodes.push({x:colX[cl], y:0.10+(n>1?idx/(n-1)*0.80:0.45),
+                 exc:NET.sign[j]>0, type:NET.nm[j], col:cl});
+    bColIdx.push(cl);
+  }
+})();
+
+function stepObs(dt){
+  if(!bOn) return;
+  var br=obsBr;
+  // 世界状态 → 感觉/驱动群输入
+  var ext=br.ext;
+  for(var i=0;i<br.n;i++) ext[i]=0;
+  var near=nearestSticky();
+  var seeStick = near? Math.max(0,1-near.d/4) : 0;
+  var hunger = drives.hunger;
+  var danger = Math.max(drives.fear, seeStick*(0.4+0.6*aversion));
+  ext[NET.start['ORN_food']]  += 0.55 + Math.max(0,(0.5-hunger))*3.2;
+  ext[NET.start['ORN_ferm']]  += 0.25 + seeStick*5.0;   // 背景 + 粘板发酵味
+  ext[NET.start['ORN_alarm']] += (stuckT>0?5.0:0);      // 被粘住 → 报警信息素
+  ext[NET.start['mechano']]   += 0.35 + danger*4.8;
+  ext[NET.start['visual']]    += 0.45 + (seeStick*3.0 + danger*1.6);
+  ext[NET.start['GRN_sugar']] += (state==='feed'?5.0:0);
+  ext[NET.start['Hugin']]     += hunger*4.5;
+  ext[NET.start['FB_energy']] += (energyNow>140?3.6:0);
+  // 推进 LIF（20ms 子步）
+  var steps=Math.max(1, Math.min(3, Math.round(dt/0.02)));
+  for(var k=0;k<steps;k++) fbStep(br, dt/steps);
+  // 读出
+  bWalk = fbRate(br,'MN_walk');      // 直接 Hz
+  bFeed = fbRate(br,'MN_feed');
+  var avNow = fbRate(br,'MBON_av');
+  // 放电条：三列真实放电率
+  var sS=0,nS=0,sC=0,nC=0,sM=0,nM=0;
+  for(var q=0;q<br.n;q++){
+    var cl=NET.col[q];
+    var rv=Math.min(1, br.r[q]/(cl==='Sensory'?28:(cl==='Motor'?60:75)));
+    if(cl==='Sensory'){ sS+=rv; nS++; }
+    else if(cl==='Motor'){ sM+=rv; nM++; }
+    else { sC+=rv; nC++; }
+  }
+  bRate.s=nS?sS/nS:0; bRate.c=nC?sC/nC:0; bRate.m=nM?sM/nM:0;
+  stripAcc=(stripAcc||0)+dt;
+  if(stripAcc>=0.1){ stripAcc-=0.1; pushStrip({s:bRate.s, c:bRate.c, m:bRate.m}); }
+  obsAv=avNow;
+}
+var stripAcc=0, obsAv=0;
+function drawObs(){
+  if(!bOn) return;
+  var cv=document.getElementById('brainCv'); if(!cv) return;
+  var g=cv.getContext('2d'), W=cv.width, H=cv.height;
+  var padTop=24, padBot=62;
+  g.clearRect(0,0,W,H);
+  g.font='9px system-ui'; g.fillStyle='#8891a6'; g.textAlign='center';
+  BCOLS.forEach(function(c){
+    var x = c.key==='Sensory'?0.10 : c.key==='Drives'?0.38 : c.key==='Central'?0.64 : 0.90;
+    g.fillText(c.label, x*W, 13);
+  });
+  var br=obsBr;
+  // 预计算每条边的源神经元（只算一次）
+  if(!window.__edgeSrc){
+    var es=new Int16Array(NET.E);
+    for(var ei=0;ei<NET.E;ei++){
+      for(var ni=0;ni<NET.n;ni++){
+        if(ei>=NET.off[ni] && ei<NET.off[ni+1]){ es[ei]=ni; break; }
+      }
+    }
+    window.__edgeSrc=es;
+  }
+  // 连线
+  var E=NET.E, stride=1;   // 145 条全画
+  for(var e=0;e<E;e+=stride){
+    var src=window.__edgeSrc[e];
+    var a=NET.oDst[e];
+    if(src<0) continue;
+    var n1=bNodes[src], n2=bNodes[a];
+    if(!n1||!n2) continue;
+    var act=Math.max(br.r[src],br.r[a]);
+    var aa=Math.max(0,Math.min(1,act/40));
+    var wAbs=Math.abs(br.w[e]||0);
+    g.strokeStyle='rgba(150,165,190,'+(0.10+aa*0.35).toFixed(2)+')';
+    g.lineWidth=wAbs>0.5?1.1:(wAbs>0.15?0.8:0.55);
+    g.beginPath();
+    g.moveTo(n1.x*W, padTop+n1.y*(H-padTop-padBot));
+    g.lineTo(n2.x*W, padTop+n2.y*(H-padTop-padBot));
+    g.stroke();
+  }
+  // 神经元（按放电率点亮）
+  for(var k=0;k<br.n;k++){
+    var nd=bNodes[k]; if(!nd) continue;
+    var rv=Math.max(0,Math.min(1, br.r[k]/45));
+    var col=nd.exc?[90,200,160]:[220,110,130];
+    g.beginPath();
+    g.arc(nd.x*W, padTop+nd.y*(H-padTop-padBot), 2.4+rv*4.2, 0, Math.PI*2);
+    g.fillStyle='rgba('+col.join(',')+','+(0.22+rv*0.78).toFixed(2)+')';
+    g.fill();
+  }
+  var rows=[['MBON_av 厌恶性权重（学到的"粘板危险"）','#f87171',(aversion*100).toFixed(1)+'%'],
+            ['MN_walk 行进驱动','#34d399',bWalk.toFixed(1)+' Hz'],
+            ['MN_feed 喙伸展（取食）','#f0b429',bFeed.toFixed(1)+' Hz']];
+  rows.forEach(function(r,i2){
+    var y=H-padBot+18+i2*15;
+    g.font='9px system-ui'; g.textAlign='left'; g.fillStyle='#8891a6';
+    g.fillText(r[0].length>26?r[0].slice(0,26):r[0], 4, y);
+    g.textAlign='right'; g.fillStyle=r[1]; g.fillText(r[2], W-4, y);
+  });
+  var info=document.getElementById('bInfo');
+  if(info) info.textContent='实测接线 '+NET.n+' 神经元 · '+NET.E+' 边（实测 '+NET.meas+'）';
+  var ns=nearestSticky();
+  var set=function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+  set('o-state', (stuckT>0?'被粘住 '+stuckT.toFixed(1)+'s（闪烁中）':state));
+  set('o-energy', Math.round(energyNow)+' / '+Math.round(drives.hunger*100)+'%');
+  set('o-avers', (aversion*100).toFixed(1)+'%');
+  set('o-sticky', stickies.length+' / '+(ns?ns.d.toFixed(2):'—'));
+  set('o-stuck', stuckCount+' 次 / '+stuckTotal.toFixed(1)+'s');
+  set('o-mn', bWalk.toFixed(1)+' / '+bFeed.toFixed(1)+' Hz');
+}
+$('#obsClose').onclick=function(e){
+  e.stopPropagation();
+  bOn=false;
+  $('#brainPanel').classList.remove('on');
+  var mn0=document.getElementById('mini'); if(mn0) mn0.style.display='';
+  var tb0=document.getElementById('tools'); if(tb0) tb0.style.display='';
+  $('#obsBtn').textContent='🧠 观察';
+};
+$('#obsBtn').onclick=function(e){
+  e.stopPropagation();
+  bOn=!bOn;
+  $('#brainPanel').classList.toggle('on', bOn);
+  var mn=document.getElementById('mini'); if(mn) mn.style.display=bOn?'none':'';
+  var tb=document.getElementById('tools'); if(tb) tb.style.display=bOn?'none':'';
+  this.textContent = bOn ? '🧠 关掉' : '🧠 单只观察';
+};
+$('#stickyBtn').onclick=function(e){
+  e.stopPropagation();
+  placingSticky=!placingSticky;
+  this.textContent = placingSticky ? '✔ 点地面' : '🟨 放粘板';
+};
+if(/[?&]brain=1/.test(location.search)) setTimeout(function(){ $('#obsBtn').click(); }, 500);
+if(/[?&]sticky=1/.test(location.search)) setTimeout(function(){ addSticky(1.2,0.8); }, 300);
+$('#feedBtn').onclick=function(e){ e.stopPropagation(); feedFood(); };
+$('#foodClear').onclick=function(e){
+  e.stopPropagation();
+  foodOn=false; food.visible=false; foodGlow.intensity=0;
+  if(state==='feed') setState('walk');
+  toast0('已清掉食物');
+};
+$('#stickyClear').onclick=function(e){
+  e.stopPropagation();
+  stickies.forEach(function(sm){ scene.remove(sm.mesh); });
+  stickies=[];
+  if(stuckT>0){ stuckT=0; if(state!=='fly') setState('walk'); }   // 解除粘住
+  toast0('已清除粘板');
+};
+
+/* ============ 小地图 ============ */
+var mc=document.getElementById('mcanvas'), mctx=mc?mc.getContext('2d'):null;
+var R_ARENA=9;
+function drawMini(){
+  if(!mctx)return;
+  var W=mc.width, cx=W/2, cy=W/2, R=W/2-6;
+  mctx.clearRect(0,0,W,W);
+  // 围栏
+  mctx.beginPath(); mctx.arc(cx,cy,R,0,Math.PI*2);
+  mctx.fillStyle='#0b0d13'; mctx.fill();
+  mctx.strokeStyle='#2a3350'; mctx.lineWidth=1.5; mctx.stroke();
+  // 网格十字
+  mctx.strokeStyle='#171c28'; mctx.lineWidth=1;
+  mctx.beginPath(); mctx.moveTo(cx-R,cy); mctx.lineTo(cx+R,cy);
+  mctx.moveTo(cx,cy-R); mctx.lineTo(cx,cy+R); mctx.stroke();
+  var k=R/R_ARENA;
+  // 粘板（黄色方块）
+  for(var si3=0;si3<stickies.length;si3++){
+    var stp=stickies[si3];
+    var sx=cx+stp.pos.x*k, sy=cy+stp.pos.y*k, half=Math.max(3, stp.r*k);
+    mctx.fillStyle='rgba(240,180,41,.85)';
+    mctx.fillRect(sx-half, sy-half, half*2, half*2);
+    mctx.strokeStyle='rgba(255,220,120,.9)'; mctx.lineWidth=1;
+    mctx.strokeRect(sx-half, sy-half, half*2, half*2);
+  }
+  // 食物（清掉就不画）
+  if(foodOn){
+    mctx.beginPath();
+    mctx.arc(cx+food.position.x*k, cy+food.position.z*k, 4, 0, Math.PI*2);
+    mctx.fillStyle='#c98a3a'; mctx.fill();
+  }
+  // 目标点
+  if(hasTarget){
+    mctx.beginPath();
+    mctx.arc(cx+target.x*k, cy+target.y*k, 3, 0, Math.PI*2);
+    mctx.strokeStyle='#4b5a86'; mctx.lineWidth=1.2; mctx.stroke();
+  }
+  // 果蝇（三角形指朝向）
+  var fx=cx+pos.x*k, fy=cy+pos.y*k;
+  // 三角默认朝上(-y)，要让它对齐世界朝向：forward = (cos h, -sin h)
+  var airborne=(alt>0.35);
+  mctx.save(); mctx.translate(fx,fy); mctx.rotate(Math.PI/2 - heading);
+  mctx.beginPath(); mctx.moveTo(0,-7); mctx.lineTo(5,5); mctx.lineTo(-5,5); mctx.closePath();
+  if(airborne){
+    mctx.strokeStyle=(state==='startle'||state==='flee')?'#f87171':'#a8b6ff';
+    mctx.lineWidth=1.8; mctx.stroke();           // 飞行：空心
+  }else{
+    mctx.fillStyle=(state==='startle'||state==='flee')?'#f87171':'#7c8cff';
+    mctx.fill();                                  // 落地：实心
+  }
+  mctx.restore();
+  // 高度杆：越飞越高，杆越长
+  if(airborne){
+    var hp=Math.min(16,(alt-0.10)*7.5);
+    mctx.beginPath(); mctx.moveTo(fx,fy-8); mctx.lineTo(fx,fy-8-hp);
+    mctx.strokeStyle='rgba(140,160,255,.8)'; mctx.lineWidth=1.6; mctx.stroke();
+    mctx.beginPath(); mctx.arc(fx,fy-8-hp,2.2,0,Math.PI*2);
+    mctx.fillStyle='#a8b6ff'; mctx.fill();
+    mctx.beginPath(); mctx.moveTo(fx-3,fy-8); mctx.lineTo(fx+3,fy-8);
+    mctx.strokeStyle='rgba(140,160,255,.5)'; mctx.lineWidth=1; mctx.stroke();
+  }
+  // 距离原点半径圈
+  mctx.beginPath(); mctx.arc(cx,cy,R*0.5,0,Math.PI*2);
+  mctx.strokeStyle='#141926'; mctx.setLineDash([3,4]); mctx.stroke(); mctx.setLineDash([]);
+  var mp=document.getElementById('mpos');
+  if(mp)mp.textContent='x '+pos.x.toFixed(1)+' · y '+pos.y.toFixed(1)+' · z '+(alt-0.10).toFixed(1);
+}
+
+/* ============ 主循环 ============ */
+var ZMIN=.45, ZMAX=3.2;
+var zoom=(function(){try{var v=parseFloat(new URLSearchParams(location.search).get('z'));return (v&&v>0)?Math.max(ZMIN,Math.min(ZMAX,v)):1;}catch(e){return 1;}})();
+var clock=new THREE.Clock(), acc=0, bT=0;
+function tick(){
+ try{
+  var dt=Math.min(clock.getDelta(),.05);
+  t+=dt; acc+=dt; bT+=dt;
+
+  // 神经信号（本地运算）
+  if(true){
+    var f=latest;
+    drives.hunger=clamp(drives.hunger + PA.met*dt - PA.sup*f.s*dt, 0, 1);
+    drives.fear=clamp(drives.fear + .004*dt + .02*Math.max(0,f.c-.55)*dt - .02*dt, 0, 1);
+    drives.fatigue=clamp(drives.fatigue + .006*dt + .01*f.m*dt - (state==='rest'?.06:0)*dt, 0, 1);
+    drives.curiosity=clamp(drives.curiosity + .010*dt - .05*Math.max(0,f.c-.4)*dt, 0, 1);
+  }
+  // 自发飞行：不靠惊吓，自己想起来就飞
+  if(t>nextFlyAt){
+    nextFlyAt=t+rnd(11,26);
+    if(state!=='fly' && state!=='rest' && state!=='startle'){
+      takeoff();
+    }
+  }
+  // 行为计时
+  if(bT>.9){ bT=0; if(state!=='startle'&&state!=='fly')pickBehavior(); }
+
+  // 运动
+  var tSec=t;
+  var speed=0;
+  var _near=nearestSticky();
+  if(_near && _near.d<_near.s.r && stuckT<=0){
+    stuckT=0.01; pushMsg('Buzz','它踩到粘板上了');
+  }
+  if(stuckT<=0 && aversion>0){
+    aversion=Math.max(0, aversion*(1-PA.forget*dt));   // 时间久了会淡忘
+  }
+  if(stuckT>0){
+    stuckT+=dt; stuckTotal+=dt;
+    if(state==='fly'){ setState('walk'); }               // 粘住就别想飞
+    altGoal=0.10; alt+=(0.10-alt)*Math.min(1,dt*10);     // 高度掉下来
+    drives.hunger=clamp(drives.hunger+PA.drain*dt,0,1);
+    aversion=Math.min(1, aversion+PA.learn*dt);
+    if(Math.random() < 1-Math.pow(1-PA.esc,dt)){
+      stuckT=0; stuckCount++;                            // 挣脱
+      pushMsg('Buzz','挣脱了（第 '+stuckCount+' 次），它记住了这块黄色的东西');
+    }
+    speed=0;
+  }
+  if(stuckT<=0 && (state==='walk'||state==='flee'||state==='explore'||state==='feed'||state==='fly') && hasTarget){
+    var dir=new THREE.Vector2(target.x-pos.x, target.y-pos.y);
+    var dist=dir.length();
+    speed=(state==='fly')?PA.flee+1.8*latest.m:(state==='flee')?PA.flee:(state==='feed'?PA.walk*0.78:PA.walk);
+    // 前方是水 → 不能走，起飞过去
+    if(state!=='fly'){
+      var nx=pos.x+dir.x*speed*dt, nz=pos.y+dir.y*speed*dt;
+      if(isWater(nx,nz)){
+        var keepX=target.x, keepY=target.y;
+        takeoff();
+        target.set(keepX,keepY); hasTarget=true;
+        altGoal=Math.max(altGoal,0.85);
+        return;
+      }
+    }
+    if(dist<.35){
+      hasTarget=false;
+      if(state==='feed'){ if(foodOn) drives.hunger=clamp(drives.hunger-PA.eat,0,1); pickBehavior(); }
+      else if(state==='fly'){ target.set(rnd(-RADIUS*0.9,RADIUS*0.9), rnd(-RADIUS*0.9,RADIUS*0.9)); altGoal=rnd(0.75,2.20); hasTarget=true; }  // 飞行：换航点+换高度
+      else pickBehavior();
+    }
+    else if(dist>1e-4){
+      dir.normalize();
+      pos.x+=dir.x*speed*dt; pos.y+=dir.y*speed*dt;
+      // 厌恶回避：靠近粘板时加一个排斥向量
+      if(aversion>0.15){
+        for(var si=0;si<stickies.length;si++){
+          var sp2=stickies[si].pos, ddx=pos.x-sp2.x, ddz=pos.y-sp2.y;
+          var dd=Math.hypot(ddx,ddz);
+          var rr2=1.8+2.2*aversion;
+          if(dd<rr2 && dd>0.01){
+            var w2=(1-dd/rr2)*aversion*2.2;
+            dir.x+=ddx/dd*w2; dir.y+=ddz/dd*w2;
+          }
+        }
+      }
+      var want=Math.atan2(-dir.y,dir.x);
+      var d=((want-heading+Math.PI*3)%(Math.PI*2))-Math.PI;
+      heading+=d*Math.min(1,dt*PA.turn);
+    }
+  }
+  if(state==='fly' && !hasTarget){ target.set(rnd(-RADIUS*0.9,RADIUS*0.9), rnd(-RADIUS*0.9,RADIUS*0.9)); altGoal=rnd(0.75,2.20); hasTarget=true; }
+  // 边界
+  var r=Math.hypot(pos.x,pos.y); if(r>8.4){ pos.multiplyScalar(8.4/r); hasTarget=false; }
+
+  var hop=(state==='startle')?Math.abs(Math.sin(tSec*12))*0.22:0;
+  var altTarget=(state==='fly')?altGoal:0.10;
+  alt+=(altTarget-alt)*Math.min(1,dt*1.8);
+  var wob=(state==='fly')?Math.sin(tSec*2.2)*0.05:0;
+  fly.position.set(pos.x,alt+hop+wob,pos.y);
+  // 飞行途中：恐惧消退就落地
+  if(state==='fly' && ((drives.fear<0.32 && (tSec-flyStart)>5) || (tSec-flyStart)>16)){
+    if(!isWater(pos.x,pos.y) || (tSec-flyStart)>26) land();
+  }
+  shadow.position.set(pos.x,.02,pos.y);
+  fly.rotation.y=heading;
+
+  // 动画细节
+  legs.forEach(function(L){
+    var ph=L.k*2.1+(L.side>0?0:Math.PI);
+    var swing = speed>0 ? Math.sin(tSec*13+ph)*0.34 : Math.sin(tSec*1.8+ph)*0.03;
+    var knee  = speed>0 ? 0.12+Math.abs(Math.sin(tSec*13+ph))*0.42 : 0.12;
+    if(state==='groom' && L.k===0){ knee=0.95+Math.sin(tSec*9+ph)*0.28; swing=0.25; }
+    if(state==='rest'){ knee=0.05; swing=0.0; }
+    if(state==='fly'){ swing=-0.55; knee=-0.25; }
+    L.hip.rotation.z=L.baseZ+swing;
+    L.knee.rotation.z=L.kneeBase+knee;
+    L.knee.rotation.x=L.kneeBaseX+(speed>0?Math.sin(tSec*13+ph)*0.10:0);
+  });
+  var flap=(state==='fly')?(0.55+0.4*latest.m):((state==='startle'||state==='flee')?0.85:(speed>0?0.16:0.05));
+  var wingHz=(state==='fly')?(38+55*latest.m):46;
+  wingPivotL.rotation.z= 0.10+Math.sin(tSec*wingHz)*flap;
+  wingPivotR.rotation.z=-0.10-Math.sin(tSec*wingHz)*flap;
+  if(abdominal) abdominal.position.y=0.30+((state==='groom')?Math.sin(tSec*6)*.012:Math.sin(tSec*3)*.006);
+  head.rotation.z=(state==='groom')?Math.sin(tSec*7)*.22:0;
+  proboscis.scale.y=(state==='feed')?1.0:0.15;
+
+  // 相机始终跟着果蝇（稳定在画面中央）
+  var camTx=pos.x+2.4*zoom, camTz=pos.y+2.6*zoom, camTy=alt+0.28+1.77*zoom;
+  camera.position.x+=(camTx-camera.position.x)*Math.min(1,dt*2.2);
+  camera.position.z+=(camTz-camera.position.z)*Math.min(1,dt*2.2);
+  camera.position.y+=((camTy)-camera.position.y)*Math.min(1,dt*2.2);
+  camera.lookAt(pos.x,alt+0.22,pos.y);
+
+  buzzTick(dt);
+  // UI
+  ['hunger','fear','fatigue','curiosity'].forEach(function(k){
+    $('#d-'+k).style.width=(drives[k]*100).toFixed(0)+'%';
+    $('#v-'+k).textContent=(drives[k]*100).toFixed(0)+'%';
+  });
+  renderer.render(scene,camera);
+  speedNow=speed; energyNow=(1-drives.hunger)*100;
+  // 被粘住期间：身体亮黄闪烁
+  var mats=[bodyMat,thoraxMat,darkMat,legMat];
+  if(stuckT>0){
+    var pulse=0.45+0.55*Math.abs(Math.sin(t*9));
+    mats.forEach(function(m){ if(m&&m.emissive) m.emissive.setRGB(pulse, pulse*0.72, 0); });
+  }else{
+    mats.forEach(function(m){ if(m&&m.emissive) m.emissive.setRGB(0,0,0); });
+  }
+  stepObs(dt);
+  drawObs();
+  drawMini();
+  if(/[?&]dbg=1/.test(location.search)) document.title='state='+state+' alt='+alt.toFixed(2)+' speed='+(typeof speed!=='undefined'?speed.toFixed(2):'?')+' target='+(hasTarget?'Y':'N')+' pos='+pos.x.toFixed(1)+','+pos.y.toFixed(1);
+ }catch(err){ window.__tickErr=(err&&err.stack||String(err)).slice(0,400); }
+  requestAnimationFrame(tick);
+}
+var t=0;
+$('#menuBtn').onclick=function(e){ e.stopPropagation(); $('#menu').classList.toggle('on'); };
+$('#inboxBtn').onclick=function(e){ e.stopPropagation(); $('#inbox').classList.toggle('on'); };
+document.addEventListener('click',function(e){
+  var m=$('#menu'), b=$('#inbox');
+  if(m && m.classList.contains('on') && !m.contains(e.target) && e.target.id!=='menuBtn') m.classList.remove('on');
+  if(b && b.classList.contains('on') && !b.contains(e.target) && e.target.id!=='inboxBtn') b.classList.remove('on');
+});
+if(/[?&]panel=1/.test(location.search)) $('#menu').classList.add('on');
+function openModal(url,title){
+  var ifr=$('#mframe');
+  ifr.src=url;
+  var h=$('#mheadTitle'); if(h) h.textContent=title;
+  $('#modal').classList.add('on');
+  $('#menu').classList.remove('on');
+}
+$('#openLab').onclick=function(e){
+  e.stopPropagation();
+  openModal(location.protocol+'//'+location.hostname+':8770/','🧪 神经实验台');
+};
+$('#openWorld').onclick=function(e){
+  e.stopPropagation();
+  openModal(location.origin+'/world/','🌍 大世界');
+};
+$('#openUpdate').onclick=function(e){
+  e.stopPropagation();
+  var doc = '<!doctype html><meta charset="utf-8">'
+    + '<body style="margin:0;padding:18px;background:#0a0d12;color:#e8ecf5;'
+    + 'font:13px/1.9 system-ui,-apple-system,\'PingFang SC\',sans-serif">'
+    + '<h2 style="margin:0 0 8px;font-size:15px">⇪ 整站更新</h2>'
+    + '<p style="color:#8891a6;margin:0 0 12px">选一个 <b style="color:#e8ecf5">flybrain-full.zip</b>，'
+    + '上传后服务器会自动替换 <b style="color:#e8ecf5">围栏 / 大世界 / 养果蝇 / 实验台</b>，'
+    + '并保留实验结果，然后自己重启。</p>'
+    + '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">'
+    + '<input type="file" id="upFile" accept=".zip" style="font-size:12.5px;color:#c8d0e0">'
+    + '<button id="upGo" style="padding:7px 14px;border-radius:8px;border:1px solid #2a3category;'
+    + 'background:#1b2130;color:#e8ecf5;cursor:pointer">上传并更新</button></div>'
+    + '<div id="upBar" style="height:6px;background:#161b26;border-radius:4px;overflow:hidden;margin-bottom:10px">'
+    + '<i id="upFill" style="display:block;height:100%;width:0;background:#34d399;transition:width .2s"></i></div>'
+    + '<pre id="upLog" style="margin:0;padding:10px;background:#0b0d13;border:1px solid #252a38;'
+    + 'border-radius:8px;color:#9aa4b8;font-size:12px;white-space:pre-wrap;max-height:240px;overflow:auto">等待选择文件…</pre>'
+    + '<p style="color:#6b7385;font-size:11.5px;margin:10px 0 0">'
+    + '更新时会短暂断开（约 1 秒），期间页面可能加载失败，刷新即可。</p>'
+    + '<script>'
+    + 'var LAB="http://"+location.hostname+":8770";'
+    + 'var logEl,fillEl;'
+    + 'function W(t){ if(logEl) logEl.textContent=t; }'
+    + 'function P(p){ if(fillEl) fillEl.style.width=p+"%"; }'
+    + 'document.addEventListener("DOMContentLoaded",function(){'
+    + '  logEl=document.getElementById("upLog"); fillEl=document.getElementById("upFill");'
+    + '  document.getElementById("upGo").onclick=function(){'
+    + '    var f=document.getElementById("upFile").files[0];'
+    + '    if(!f){ W("先选一个 zip 喵"); return; }'
+    + '    var CH=2*1024*1024, n=Math.ceil(f.size/CH), i=0;'
+    + '    W("开始上传 "+f.name+"（"+(f.size/1048576).toFixed(1)+" MB，"+n+" 片）");'
+    + '    function nextChunk(){'
+    + '      if(i>=n){ finish(); return; }'
+    + '      var blob=f.slice(i*CH,(i+1)*CH), rd=new FileReader();'
+    + '      rd.onload=function(){'
+    + '        var b64=rd.result.split(",")[1];'
+    + '        fetch(LAB+"/api/up_chunk",{method:"POST",headers:{"Content-Type":"application/json"},'
+    + '          body:JSON.stringify({i:i,data:b64})}).then(function(r){return r.json();}).then(function(d){'
+    + '          if(!d.ok){ W("× 第 "+(i+1)+" 片失败："+(d.error||"")); return; }'
+    + '          i++; P(Math.round(i/n*90));'
+    + '          W("已上传 "+i+"/"+n+" 片  ("+(d.recv/1048576).toFixed(1)+" MB)");'
+    + '          nextChunk();'
+    + '        }).catch(function(e){ W("× 上传中断："+e+"\\n（实验台 8770 是否在运行？）"); });'
+    + '      };'
+    + '      rd.readAsDataURL(blob);'
+    + '    }'
+    + '    function finish(){'
+    + '      P(92); W("上传完成，开始应用更新…");'
+    + '      fetch(LAB+"/api/up_finish",{method:"POST",headers:{"Content-Type":"application/json"},'
+    + '        body:"{}"}).then(function(r){return r.json();}).then(function(d){'
+    + '        if(!d.ok){ W("× 启动更新失败："+(d.error||"")); return; }'
+    + '        poll();'
+    + '      });'
+    + '    }'
+    + '    function poll(){'
+    + '      fetch(LAB+"/api/up_status",{method:"POST",headers:{"Content-Type":"application/json"},'
+    + '        body:"{}"}).then(function(r){return r.json();}).then(function(d){'
+    + '        if(d.state==="applying"){ P(95); W("正在应用更新…（"+d.sec+" 秒）"); setTimeout(poll,1500); }'
+    + '        else if(d.state==="done"){ P(100); W("✅ 更新完成！\\n\\n"+(d.log||"")); }'
+    + '        else if(d.state==="failed"){ P(100); W("❌ 更新失败\\n\\n"+(d.log||"")); }'
+    + '        else { setTimeout(poll,1500); }'
+    + '      }).catch(function(){ P(96); W("服务正在重启，稍等…"); setTimeout(function(){ location.reload(); },3000); });'
+    + '    }'
+    + '    nextChunk();'
+    + '  };'
+    + '});'
+    + '<\/script></body>';
+  var ifr=document.getElementById('mframe');
+  ifr.removeAttribute('src');
+  ifr.srcdoc = doc.replace("#2a3category","#2a3143");
+  document.getElementById('mheadTitle').textContent='⇪ 更新整个网站';
+  document.getElementById('modal').classList.add('on');
+  document.getElementById('menu').classList.remove('on');
+};
+$('#openColony').onclick=function(e){
+  e.stopPropagation();
+  openModal(location.origin+'/colony/','🪰 养果蝇');
+};
+$('#mclose').onclick=function(){ $('#modal').classList.remove('on'); };
+if(/[?&]lab=1/.test(location.search)) setTimeout(function(){ $('#openLab').click(); }, 600);
+$('#modal').onclick=function(e){ if(e.target.id==='modal') $('#modal').classList.remove('on'); };
+if(/[?&]fly=1/.test(location.search)) setTimeout(function(){ takeoff(); }, 900);
+document.addEventListener('click',function(e){
+  var m=$('#menu');
+  if(m && m.classList.contains('on') && !m.contains(e.target) && e.target.id!=='menuBtn') m.classList.remove('on');
+});
+function resize(){
+  renderer.setSize(innerWidth,innerHeight);
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+}
+addEventListener('resize',resize); resize();
+pushMsg('系统','围栏启动：13.9 万神经元的连接组正在驱动这只果蝇');
+tick();
+</script>
+</body>
+</html>
