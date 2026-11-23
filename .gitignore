@@ -17,3 +17,5 @@ __pycache__/
 
 # 本机发布脚本（不含凭证，但仅本机使用）
 release.sh
+
+apk/app/src/main/assets/

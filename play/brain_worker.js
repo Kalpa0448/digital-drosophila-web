@@ -39,8 +39,21 @@ let mn9Rate = 0, mn9Hist = [];
 const LR = 0.02, DECAY = 0.02;
 
 async function gunzip(url) {
-  const res = await fetch(url);
+  // Android APK 打包时 aapt 会把 .gz 自动解压并去掉后缀，这里做两级兼容：
+  //   1) 先请求原地址；404 且是 .gz 时，退回去请求无后缀的同名文件
+  //   2) 读到数据后看 gzip 魔数（1f 8b）：是就解压，不是就直接用
+  let res = await fetch(url);
+  if (!res.ok && url.endsWith('.gz')) {
+    try { res = await fetch(url.slice(0, -3)); } catch (e) {}
+  }
   if (!res.ok) throw new Error('加载失败 ' + url);
+  const head = new Uint8Array(await res.clone().arrayBuffer());
+  const isGzip = head.length > 2 && head[0] === 0x1f && head[1] === 0x8b;
+  if (!isGzip) {
+    // APK 里已经是明文（aapt 解压过），直接返回
+    self.postMessage({ type: 'progress', loaded: head.length });
+    return head;
+  }
   if (!res.body || typeof DecompressionStream === 'undefined') {
     // 浏览器不支持流式解压时，退化成后端给明文（不应该发生）
     return new Uint8Array(await res.arrayBuffer());
