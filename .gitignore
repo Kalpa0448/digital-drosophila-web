@@ -19,3 +19,7 @@ __pycache__/
 release.sh
 
 apk/app/src/main/assets/
+
+apk/app/src/main/assets/
+apk/app/build/
+apk/local.properties
