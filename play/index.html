@@ -1363,7 +1363,7 @@ $('#openLab').onclick=function(e){
 };
 $('#openWorld').onclick=function(e){
   e.stopPropagation();
-  openModal(location.origin+'/world/','🌍 大世界');
+  openModal('world/index.html','🌍 大世界');   // 相对路径：file:// (APK) 与 http 都能用
 };
 $('#openUpdate').onclick=function(e){
   e.stopPropagation();
@@ -1441,7 +1441,7 @@ $('#openUpdate').onclick=function(e){
 };
 $('#openColony').onclick=function(e){
   e.stopPropagation();
-  openModal(location.origin+'/colony/','🪰 养果蝇');
+  openModal('colony/index.html','🪰 养果蝇'); // 相对路径：file:// (APK) 与 http 都能用
 };
 $('#mclose').onclick=function(){ $('#modal').classList.remove('on'); };
 if(/[?&]lab=1/.test(location.search)) setTimeout(function(){ $('#openLab').click(); }, 600);
